@@ -23,12 +23,40 @@ int s(char *pattern_space, const char* pattern, const char* replace) {
 
   const int so = pmatch[0].rm_so;
   const int eo = pmatch[0].rm_eo;
+
+  const int pattern_space_len = strlen(pattern_space);
   const int replace_len = strlen(replace);
+
   int po;
   int ro;
+
+  // fixed_replace = expand_replace()
+
   for (po = so, ro = 0; po < eo && ro < replace_len; ++po, ++ro) {
     pattern_space[po] = replace[ro];
   }
+
+  if (po < eo) {
+    memmove(
+      pattern_space + po,
+      pattern_space + eo,
+      pattern_space_len - po
+    );
+  } else if (ro < replace_len) {
+    memmove(
+      pattern_space + eo + replace_len - ro,
+      pattern_space + eo,
+      pattern_space_len - eo
+    );
+    memmove(
+      pattern_space + eo,
+      replace + ro,
+      replace_len - ro
+    );
+
+    pattern_space[pattern_space_len + replace_len - (eo - so)] = 0;
+  }
+
   regfree(&regex);
   return 1;
 }
@@ -38,7 +66,7 @@ int main(void) {
   char hold_space[HOLD_SIZE];
   strcpy(pattern_space, "Hello World!");
 
-  if (s(pattern_space, "lo", "ye"))
+  if (s(pattern_space, "llo Worl", "xc"))
     puts(pattern_space);
 
   return 0;
