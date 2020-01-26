@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #define PATTERN_SIZE 1024
 #define HOLD_SIZE 1024
@@ -61,13 +62,17 @@ int s(char *pattern_space, const char* pattern, const char* replace) {
   return 1;
 }
 
-int main(void) {
+int main(int argc, char **argv) {
+  if (argc < 2) {
+    return 1;
+  }
   char pattern_space[PATTERN_SIZE];
   char hold_space[HOLD_SIZE];
-  strcpy(pattern_space, "Hello World!");
+  int nb_read = read(STDIN_FILENO, &pattern_space, PATTERN_SIZE);
+  pattern_space[nb_read] = 0;
 
-  if (s(pattern_space, "llo Worl", "xc"))
-    puts(pattern_space);
+  s(pattern_space, argv[1], argv[2]);
+  puts(pattern_space);
 
   return 0;
 }
