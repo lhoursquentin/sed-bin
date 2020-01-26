@@ -1,0 +1,44 @@
+#!/bin/sh
+
+# clash core tests
+
+. "${CLASH_ROOT-.}"/test/testlib/assert || exit
+
+bin=./sed-bin
+
+s() {
+  input="$1"
+  regex="$2"
+  replace="$3"
+
+  printf %s "$input" | "$bin" "$regex" "$replace" | head -c -1
+}
+
+# Replace by smaller
+assert_out s 'Hello World' 'Hell' 'Y' -- 'Yo World' # start
+assert_out s 'Hello World' 'llo W' 'y w' -- 'Hey world' # middle
+assert_out s 'Hello World' ' World' '!' -- 'Hello!' # end
+# Replace by bigger
+assert_out s 'Hello World' 'Hello' 'What in the' -- 'What in the World' # start
+assert_out s 'Hello World' 'o' ' what is wrong with this' -- 'Hell what is wrong with this World' # middle
+assert_out s 'Hello World' 'ld' 'k! Oh no :(' -- 'Hello Work! Oh no :(' # end
+# Replace by same size
+assert_out s 'Hello World' 'Hello' 'Yolo!' -- 'Yolo! World' # start
+assert_out s 'Hello World' 'o' 'a' -- 'Hella World' # middle
+assert_out s 'Hello World' 'ld' 'k!' -- 'Hello Work!' # end
+
+# With regex
+assert_out s 'Hello World' '[hH]' 'Well h' -- 'Well hello World' # start
+assert_out s 'Hello World' '. .' 'a-w' -- 'Hella-world' # middle
+assert_out s 'Hello World' 'o.*' '!' -- 'Hell!' # end
+assert_out s 'Hello World' '.*' '' -- '' # full
+assert_out s 'Hello World' '.*' 'Bye' -- 'Bye' # full
+assert_out s 'Hello World' '[Hh]ello.* World*' '' -- '' # full
+
+assert_out s 'Hello World' 'Hello World' 'Bye' -- 'Bye' # full
+assert_out s 'Hello World' 'Hello World' '' -- '' # full
+
+# Fail
+assert_out s 'Hello World' 'xz' 'nope' -- 'Hello World' # end
+
+end_tests
