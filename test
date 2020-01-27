@@ -11,7 +11,7 @@ s() {
   regex="$2"
   replace="$3"
 
-  printf %s "$input" | "$bin" "$regex" "$replace" | head -c -1
+  printf %s "$input" | "$bin" "$regex" "$replace"
 }
 
 # Replace by smaller

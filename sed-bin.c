@@ -123,18 +123,20 @@ int s(char *pattern_space, const char* pattern, const char* replace) {
   return 1;
 }
 
+void sed_script(char *pattern_space, char *hold_space) {
+  // generated c code from sed script parsing goes here
+}
+
 int main(int argc, char **argv) {
   if (argc < 2) {
     return 1;
   }
   char pattern_space[PATTERN_SIZE];
   char hold_space[HOLD_SIZE];
-  int nb_read = read(STDIN_FILENO, &pattern_space, PATTERN_SIZE);
-  pattern_space[nb_read] = 0;
-
-  s(pattern_space, argv[1], argv[2]);
-
-  puts(pattern_space);
-
+  while (fgets(pattern_space, PATTERN_SIZE, stdin)) {
+    sed_script(pattern_space, hold_space);
+    s(pattern_space, argv[1], argv[2]); // for testing
+    printf("%s", pattern_space);
+  }
   return 0;
 }
