@@ -1,2 +1,9 @@
-sed-bin: sed-bin.c
-	cc -g -fdiagnostics-color=always $^ -o $@
+objs = operations.o sed-bin.o
+bin = sed-bin
+
+$(bin): $(objs)
+
+.PHONY: clean
+
+clean:
+	rm -f *.o $(bin)
