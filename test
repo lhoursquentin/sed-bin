@@ -41,4 +41,8 @@ assert_out s 'Hello World' 'Hello World' '' -- '' # full
 # Fail
 assert_out s 'Hello World' 'xz' 'nope' -- 'Hello World' # end
 
+# Back refs
+assert_out s 'Hello World' '\([^ ]*\)' '\1! \1' -- 'Hello! Hello World'
+assert_out s 'Hello World' '\([^ ]*\) \(.\)' '\1! \2 ' -- 'Hello! W orld'
+
 end_tests

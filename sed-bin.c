@@ -8,6 +8,62 @@
 #define HOLD_SIZE 1024
 #define MAX_MATCHES 9
 
+int expand_replace(
+    char *replace_expanded,
+    const char *pattern_space,
+    const char *replace,
+    const regmatch_t *pmatch) {
+  const int replace_len = strlen(replace);
+  int found_backslash = 0;
+  int replace_expanded_index = 0;
+  char replace_char;
+  for (int replace_index = 0; replace_index < replace_len; ++replace_index) {
+    replace_char = replace[replace_index];
+    switch (replace_char) {
+      case '\\':
+        if (found_backslash) {
+          replace_expanded[replace_expanded_index++] = '\\';
+        }
+        found_backslash = !found_backslash;
+        break;
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+      case '5':
+      case '6':
+      case '7':
+      case '8':
+      case '9':
+        if (found_backslash) {
+          const char back_ref_index = replace_char - '0';
+          const int so = pmatch[back_ref_index].rm_so;
+          if (so == -1) {
+            return -1;
+          }
+          const int eo = pmatch[back_ref_index].rm_eo;
+          memmove(
+            replace_expanded + replace_expanded_index,
+            pattern_space + so,
+            eo
+          );
+          replace_expanded_index += eo - so;
+          found_backslash = 0;
+        } else {
+          replace_expanded[replace_expanded_index++] = replace_char;
+        }
+        break;
+      default:
+        replace_expanded[replace_expanded_index++] = replace_char;
+        if (found_backslash) {
+          found_backslash = 0; // ignore for now
+        }
+        break;
+    }
+  }
+  return replace_expanded_index;
+}
+
 int s(char *pattern_space, const char* pattern, const char* replace) {
   regex_t regex;
 
@@ -22,19 +78,21 @@ int s(char *pattern_space, const char* pattern, const char* replace) {
     return 0;
   }
 
-  const int so = pmatch[0].rm_so;
-  const int eo = pmatch[0].rm_eo;
+  const int so = pmatch[0].rm_so; // so -> start offset
+  const int eo = pmatch[0].rm_eo; // eo -> end offset
 
+  char replace_expanded[512];
+  const int replace_expanded_len =
+    expand_replace(replace_expanded, pattern_space, replace, pmatch);
   const int pattern_space_len = strlen(pattern_space);
-  const int replace_len = strlen(replace);
 
   int po;
   int ro;
 
-  // fixed_replace = expand_replace()
+  // fixed_replace_expanded = expand_replace_expanded()
 
-  for (po = so, ro = 0; po < eo && ro < replace_len; ++po, ++ro) {
-    pattern_space[po] = replace[ro];
+  for (po = so, ro = 0; po < eo && ro < replace_expanded_len; ++po, ++ro) {
+    pattern_space[po] = replace_expanded[ro];
   }
 
   if (po < eo) {
@@ -43,19 +101,19 @@ int s(char *pattern_space, const char* pattern, const char* replace) {
       pattern_space + eo,
       pattern_space_len - po
     );
-  } else if (ro < replace_len) {
+  } else if (ro < replace_expanded_len) {
     memmove(
-      pattern_space + eo + replace_len - ro,
+      pattern_space + eo + replace_expanded_len - ro,
       pattern_space + eo,
       pattern_space_len - eo
     );
     memmove(
       pattern_space + eo,
-      replace + ro,
-      replace_len - ro
+      replace_expanded + ro,
+      replace_expanded_len - ro
     );
 
-    pattern_space[pattern_space_len + replace_len - (eo - so)] = 0;
+    pattern_space[pattern_space_len + replace_expanded_len - (eo - so)] = 0;
   }
 
   regfree(&regex);
