@@ -1,4 +1,4 @@
-objs = operations.o sed-bin.o
+objs = operations.o read.o sed-bin.o
 bin = sed-bin
 
 $(bin): $(objs)

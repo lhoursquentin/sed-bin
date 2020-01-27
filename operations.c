@@ -1,12 +1,11 @@
 #include <regex.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include "operations.h"
+#include "status.h"
 
-int expand_replace(
+static int expand_replace(
     char *replace_expanded,
     const char *pattern_space,
     const char *replace,
@@ -153,4 +152,3 @@ void p(const Status *status) {
   const char *pattern_space = status->pattern_space;
   printf("%s\n", pattern_space);
 }
-
