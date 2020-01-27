@@ -21,6 +21,7 @@ int expand_replace(
     replace_char = replace[replace_index];
     switch (replace_char) {
       case '\\':
+        // double backslash case
         if (found_backslash) {
           replace_expanded[replace_expanded_index++] = '\\';
         }
@@ -56,7 +57,9 @@ int expand_replace(
       default:
         replace_expanded[replace_expanded_index++] = replace_char;
         if (found_backslash) {
-          found_backslash = 0; // ignore for now
+          // ignore for now, at some point it might be nice to handle \x, \o, \n
+          // etc.
+          found_backslash = 0;
         }
         break;
     }
@@ -67,6 +70,8 @@ int expand_replace(
 int s(char *pattern_space, const char* pattern, const char* replace) {
   regex_t regex;
 
+  // FIXME we should compile only once, both loops and each line processed can
+  // lead to compiling the same regex many times
   if (regcomp(&regex, pattern, 0)) {
     regfree(&regex);
     return 0;
@@ -81,15 +86,13 @@ int s(char *pattern_space, const char* pattern, const char* replace) {
   const int so = pmatch[0].rm_so; // so -> start offset
   const int eo = pmatch[0].rm_eo; // eo -> end offset
 
-  char replace_expanded[512];
+  char replace_expanded[512]; // TODO abitrary size, might be too small
   const int replace_expanded_len =
     expand_replace(replace_expanded, pattern_space, replace, pmatch);
   const int pattern_space_len = strlen(pattern_space);
 
   int po;
   int ro;
-
-  // fixed_replace_expanded = expand_replace_expanded()
 
   for (po = so, ro = 0; po < eo && ro < replace_expanded_len; ++po, ++ro) {
     pattern_space[po] = replace_expanded[ro];
@@ -130,6 +133,7 @@ int main(int argc, char **argv) {
   pattern_space[nb_read] = 0;
 
   s(pattern_space, argv[1], argv[2]);
+
   puts(pattern_space);
 
   return 0;
