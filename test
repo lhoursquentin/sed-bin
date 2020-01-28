@@ -45,4 +45,6 @@ assert_out s 'Hello World' 'xz' 'nope' -- 'Hello World' # end
 assert_out s 'Hello World' '\([^ ]*\)' '\1! \1' -- 'Hello! Hello World'
 assert_out s 'Hello World' '\([^ ]*\) \(.\)' '\1! \2 ' -- 'Hello! W orld'
 
+assert_out s 'Hello World' '.*r' '& & &' -- 'Hello Wor Hello Wor Hello World'
+
 end_tests

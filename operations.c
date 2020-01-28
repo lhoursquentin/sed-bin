@@ -23,6 +23,21 @@ static int expand_replace(
         }
         found_backslash = !found_backslash;
         break;
+      case '&':
+        if (!found_backslash) {
+          const int so = pmatch[0].rm_so;
+          const int eo = pmatch[0].rm_eo;
+          memmove(
+            replace_expanded + replace_expanded_index,
+            pattern_space + so,
+            eo
+          );
+          replace_expanded_index += eo - so;
+        } else {
+          replace_expanded[replace_expanded_index++] = replace_char;
+          found_backslash = 0;
+        }
+        break;
       case '1':
       case '2':
       case '3':
