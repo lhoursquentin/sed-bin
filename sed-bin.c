@@ -7,11 +7,7 @@
 #include "status.h"
 
 void sed_script(Status *status) {
-  // example for sed 'x;s/.*/space/;p;x'
-  x(status);
-  s(status, ".*", "space");
-  p(status);
-  x(status);
+  // Insert generated sed to c code here
 }
 
 int main(int argc, char **argv) {
@@ -22,10 +18,7 @@ int main(int argc, char **argv) {
   };
 
   while (read_pattern(&status)) {
-    // s(&status, argv[1], argv[2]); // for testing
-
     sed_script(&status);
-
     puts(status.pattern_space);
   }
   return EXIT_SUCCESS;

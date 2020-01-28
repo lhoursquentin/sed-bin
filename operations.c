@@ -13,9 +13,8 @@ static int expand_replace(
   const int replace_len = strlen(replace);
   bool found_backslash = false;
   int replace_expanded_index = 0;
-  char replace_char;
   for (int replace_index = 0; replace_index < replace_len; ++replace_index) {
-    replace_char = replace[replace_index];
+    const char replace_char = replace[replace_index];
     switch (replace_char) {
       case '\\':
         // double backslash case
@@ -150,5 +149,5 @@ void h(Status *status) {
 
 void p(const Status *status) {
   const char *pattern_space = status->pattern_space;
-  printf("%s\n", pattern_space);
+  puts(pattern_space);
 }
