@@ -131,6 +131,7 @@ bool s(Status *status, const char* pattern, const char* replace) {
     pattern_space[pattern_space_len + replace_expanded_len - (eo - so)] = 0;
   }
 
+  status->sub_success = true;
   regfree(&regex);
   return true;
 }

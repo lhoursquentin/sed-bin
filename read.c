@@ -8,6 +8,7 @@ bool read_pattern(Status *status) {
   if (!fgets(status->pattern_space, PATTERN_SIZE, stdin)) {
     return 0;
   }
+  status->line_nb++;
   // TODO Dirty, multiple successive strlen on pattern_space, maybe I should
   // keep the length in Status and update it when needed?
   char *pattern_space = status->pattern_space;
