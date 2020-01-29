@@ -7,11 +7,8 @@
 bin=./sed-bin
 
 s() {
-  input="$1"
-  regex="$2"
-  replace="$3"
-
-  printf %s "$input" | "$bin" "$regex" "$replace" | head -c -1
+  input="$1"; shift
+  printf %s "$input" | "$bin" "$@" | head -c -1
 }
 
 # Replace by smaller
@@ -46,5 +43,14 @@ assert_out s 'Hello World' '\([^ ]*\)' '\1! \1' -- 'Hello! Hello World'
 assert_out s 'Hello World' '\([^ ]*\) \(.\)' '\1! \2 ' -- 'Hello! W orld'
 
 assert_out s 'Hello World' '.*r' '& & &' -- 'Hello Wor Hello Wor Hello World'
+
+# g opt
+assert_out s 'Hello World' 'o' 'a' 'g' -- 'Hella Warld'
+assert_out s 'Hello World' 'o' 'abocde' 'g' -- 'Hellabocde Wabocderld'
+assert_out s 'Hello World' 'o' ' yo' 'g' -- 'Hell yo W yorld'
+assert_out s 'Oh damn god damnit' 'damn' 'no' 'g' -- 'Oh no god noit'
+assert_out s 'Oh damn god damnit' 'damn' 'n' 'g' -- 'Oh n god nit'
+assert_out s 'Hello World' '.*' 'Bye' 'g' -- 'Bye' # full
+assert_out s 'Hello World' '\([^ ]*\)' '\1! \1' 'g' -- 'Hello! Hello World! World'
 
 end_tests

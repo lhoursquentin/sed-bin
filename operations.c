@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <regex.h>
 #include <stdio.h>
 #include <string.h>
@@ -78,30 +79,36 @@ static int expand_replace(
   return replace_expanded_index;
 }
 
-bool s(Status *status, const char* pattern, const char* replace) {
-  regex_t regex;
-
-  // FIXME we should compile only once, both loops and each line processed can
-  // lead to compiling the same regex many times
-  if (regcomp(&regex, pattern, 0)) {
-    regfree(&regex);
-    return 0;
-  }
-
-  char *pattern_space = status->pattern_space;
+static int substitution(
+    regex_t *regex,
+    Status *status,
+    char *pattern_space,
+    const char *pattern,
+    const char *replace
+    )
+{
   regmatch_t pmatch[MAX_MATCHES];
-  if (regexec(&regex, pattern_space, MAX_MATCHES, pmatch, 0)) {
-    regfree(&regex);
+  if (regexec(regex, pattern_space, MAX_MATCHES, pmatch, 0)) {
+    regfree(regex);
     return 0;
   }
 
+  status->sub_success = true;
+
+  const int pattern_space_len = strlen(pattern_space);
   const int so = pmatch[0].rm_so; // start offset
+  if (so != -1 && pmatch[0].rm_eo == 0 ) {
+    // Emtpy match, example: echo foo bar | sed 's/[^ ]*/yo/g'
+    // Here foo is replaced by yo, then we move to ' bar', which is an empty
+    // match, the regex matches but does not eat any char, in that case we can
+    // just go to the next char an try a new match.
+    return 1;
+  }
   const int eo = pmatch[0].rm_eo; // end offset
 
   char replace_expanded[512]; // TODO abitrary size, might be too small
   const int replace_expanded_len =
     expand_replace(replace_expanded, pattern_space, replace, pmatch);
-  const int pattern_space_len = strlen(pattern_space);
 
   int po;
   int ro;
@@ -111,11 +118,14 @@ bool s(Status *status, const char* pattern, const char* replace) {
   }
 
   if (po < eo) {
+    // Matched part was longer than replaced part, let's shift the rest to the
+    // left.
     memmove(
       pattern_space + po,
       pattern_space + eo,
       pattern_space_len - po
     );
+    return po;
   } else if (ro < replace_expanded_len) {
     memmove(
       pattern_space + eo + replace_expanded_len - ro,
@@ -129,11 +139,42 @@ bool s(Status *status, const char* pattern, const char* replace) {
     );
 
     pattern_space[pattern_space_len + replace_expanded_len - (eo - so)] = 0;
+    return so + replace_expanded_len;
+  }
+  return eo;
+}
+
+void s(
+  Status *status,
+  const char *pattern,
+  const char *replace,
+  const int opts)
+{
+  regex_t regex;
+
+  // FIXME we should compile only once, both loops and each line processed can
+  // lead to compiling the same regex many times
+  if (regcomp(&regex, pattern, 0)) {
+    regfree(&regex);
+    assert(false);
   }
 
-  status->sub_success = true;
+  // TODO nth/p/w opts
+  const bool opt_g = opts & S_OPT_G;
+
+  char *pattern_space = status->pattern_space;
+  int pattern_offset = 0;
+  do {
+    pattern_offset = substitution(
+      &regex,
+      status,
+      pattern_space,
+      pattern,
+      replace
+    );
+    pattern_space += pattern_offset;
+  } while (opt_g && pattern_space[0] && pattern_offset);
   regfree(&regex);
-  return true;
 }
 
 void x(Status *status) {
