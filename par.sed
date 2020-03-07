@@ -23,7 +23,9 @@ x
 
 # Case where we only have our delimiter on the line, meaning there's a newline
 # in the s command
-/^.$/{
+/^.\\$/{
+  # remove escape
+  s/\\$//
   x
   # insert litteral \n in C code
   s/$/\\n/
