@@ -13,10 +13,14 @@ b fail
 : s_cmd
 
 x
+# at the top of the hold, track the number of delimiters encountered
+s/^/0/
 # insert start of s C code at the bottom of the hold
-# the leading number indicates the number of delimiters we've encountered so far
 s/$/\
-0s(status, "/; t s_cmd_insert_c_start; : s_cmd_insert_c_start
+s(status, "/
+# reset sub success value
+t s_cmd_insert_c_start
+: s_cmd_insert_c_start
 x
 
 : s_cmd_eat_next
@@ -27,7 +31,7 @@ x
   # remove escape
   s/\\$//
   x
-  # insert litteral \n in C code
+  # insert literal \n in C code
   s/$/\\n/
   x
   # read next line and remove automatic newline between delim and next line
@@ -43,7 +47,7 @@ t valid_delim_eaten
 # the backslash and process the char as any non delimiter one.
 s/^\(.\)\\\1/\1\1/
 t s_cmd_save_escaped_delim
-# litteral double quotes and backslashes must be escaped in the C code
+# literal double quotes and backslashes must be escaped in the C code
 s/^\(.\)\([\"]\)/\1\\\2/
 t s_cmd_save_char_with_escape
 
@@ -88,17 +92,15 @@ t s_cmd_eat_next
 x
 
 # TODO handle s cmd options
-# FIXME this is flaky, the 1 might match something unrelated might want to try
-# [^<newline>]*$ instead of .*, assuming it works
 
 # Found second delim
-s/^\(.*\
-\)1\(.*\)$/\1\2", 0);/
+s/^1\(.*\
+\)\(.*\)$/\1\2", 0);/
 t valid_s_parsing
 
 # Found first delim
-s/^\(.*\
-\)0\(.*\)$/\11\2", "/
+s/^0\(.*\
+\)\(.*\)$/1\1\2", "/
 x
 t s_cmd_eat_next
 
