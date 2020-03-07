@@ -91,12 +91,10 @@ t s_cmd_eat_next
 : valid_delim_eaten
 x
 
-# TODO handle s cmd options
-
 # Found second delim
 s/^1\(.*\
-\)\(.*\)$/\1\2", 0);/
-t valid_s_parsing
+\)\(.*\)$/\1\2", 0/
+t s_cmd_handle_options
 
 # Found first delim
 s/^0\(.*\
@@ -104,7 +102,38 @@ s/^0\(.*\
 x
 t s_cmd_eat_next
 
+# POSIX specifies s valid opts are: g, <nth occurence>, w <file> and p
+# TODO handle all s options
+: s_cmd_handle_options
+# At this point we don't know yet if there are any options
+x
+# remove delim, we don't need to keep it anymore
+s/.//
+t s_cmd_eat_options
+
+# could do something shorter with y/[gp]/[GP]/
+: s_cmd_eat_options
+s/^g/G/
+t s_cmd_add_prefix_opt
+s/^p/P/
+t s_cmd_add_prefix_opt
+
+b valid_s_parsing
+
+: s_cmd_add_prefix_opt
+# save to hold and remove processed option from pattern
+H
+s/.//
+x
+# process and clean saved line
+s/\(.*\)\
+\(.\).*/\1 | S_OPT_\2/
+x
+t s_cmd_eat_options
+
 : valid_s_parsing
+x
+s/$/);/
 x
 # push remaining current line on hold
 H
@@ -112,13 +141,12 @@ H
 # 1st line is hold unrelated to s
 # 2nd line is initially saved line that we didn't use, we can get rid of it
 # 3rd line is the C code that we need to print, we'll swap it last
-# 4rth line is the rest of the line on which the s cmd was, we need to remove
-#   the leading delimiter from it.
+# 4rth line is the rest of the line on which the s cmd was
 g
 s/^\(.*\)\
 .*\
 \(.*\)\
-.\(.*\)$/\1\
+\(.*\)$/\1\
 \3\
 \2/
 
