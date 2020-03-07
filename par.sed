@@ -24,14 +24,14 @@ x
 # Case where we only have our delimiter on the line, meaning there's a newline
 # in the s command
 /^.$/{
-  g
+  x
   # insert litteral \n in C code
   s/$/\\n/
-  h
+  x
+  # read next line and remove automatic newline between delim and next line
   N
-  # delete everything except newly read line
-  s/.*\
-//
+  s/^\(.\)\
+/\1/
   t s_cmd_eat_next
 }
 
