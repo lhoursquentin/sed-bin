@@ -42,9 +42,36 @@ t valid_delim_eaten
 # case of escaped delimiter s/bin\/bash/bin\/sh/, in that case we just remove
 # the backslash and process the char as any non delimiter one.
 s/^\(.\)\\\1/\1\1/
+t s_cmd_save_escaped_delim
+# litteral double quotes and backslashes must be escaped in the C code
+s/^\(.\)\([\"]\)/\1\\\2/
+t s_cmd_save_char_with_escape
+
+b s_cmd_save_char
+
+: s_cmd_save_char_with_escape
+
+# {delim}{escape+char} -> {escape+char}{delim}
+s/^\(.\)\(..\)/\2\1/
+H
+# get rid of escape + eaten char
+s/..//
+x
+# On the bottom line we have: {escape + char eaten}{delim}{rest of line}, we
+# just want to append the {char eaten} to the end of the line before the last,
+# the one containing the C code under construction.
+s/\(.*\)\
+\(..\).*/\1\2/
+x
+
+t s_cmd_eat_next
+
+: s_cmd_save_char
 
 # {delim}{char} -> {char}{delim}
 s/^\(.\)\(.\)/\2\1/
+# we can skip the swap if it was an escaped delim since \1 == \2
+: s_cmd_save_escaped_delim
 H
 # get rid of eaten char
 s/.//
