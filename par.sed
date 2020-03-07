@@ -37,8 +37,9 @@ x
 
 s/^\(.\)\1/\1/
 t valid_delim_eaten
-s/^\(.\)\\\1/\1/
-t valid_escaped_delim_eaten
+# case of escaped delimiter s/bin\/bash/bin\/sh/, in that case we just remove
+# the backslash and process the char as any non delimiter one.
+s/^\(.\)\\\1/\1\1/
 
 # {delim}{char} -> {char}{delim}
 s/^\(.\)\(.\)/\2\1/
@@ -53,10 +54,6 @@ s/\(.*\)\
 \(.\).*/\1\2/
 x
 t s_cmd_eat_next
-
-: valid_escaped_delim_eaten
-# TODO
-b s_cmd_eat_next
 
 : valid_delim_eaten
 x
