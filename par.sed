@@ -8,6 +8,7 @@ H
 
 s/^b//; t b_cmd
 s/^s//; t s_cmd
+: address_check
 s|^/|&|; t addr_regex
 s|^\\\(.\)|\1|; t addr_regex
 s/^[0-9]/&/; t addr_number
@@ -39,8 +40,12 @@ t regex_start_process
 # insert start of s C code at the bottom of the hold (we omit the name of the
 # function since we don't know here if we are currently processing the s command
 # or a regex address)
-s/$/\
-(status, "/
+# If we are processing the second address in a range, we want to avoid adding a
+# newline since we have the beginning of the C code for this range at the bottom
+# of the hold.
+/^[rn]r/!s/$/\
+/
+s/$/"/
 # reset sub success value
 t regex_insert_c_start
 : regex_insert_c_start
@@ -117,8 +122,9 @@ x
 # Found end of second regex addr, swap chars since we insert from the beginning
 s/^r\([nr]\)\(.*\
 \)\(.*\)$/\1r\2\3"/
-t valid_regex_parsing
+t addr_regex_handle_end
 
+# Found end of single regex addr, a second address might follow
 s/^r\([^nr].*\
 \)\(.*\)$/r\1\2"/
 t addr_regex_handle_end
@@ -135,7 +141,6 @@ x
 t regex_eat_next
 
 : addr_regex_handle_end
-s/^r/addr_regex/
 x
 # remove delim, we don't need to keep it anymore
 s/.//
@@ -173,7 +178,33 @@ x
 t s_cmd_eat_options
 
 : valid_regex_parsing
-s/$/);/
+/^r[^rn]/{
+  # single address, we need to check if another one follows
+
+  x
+  s/^[[:blank:]]*,[[:blank:]]*\([^[:blank:]]\)/\1/
+  x
+  t clean_first_hold_address
+  b regex_close_function
+
+  : clean_first_hold_address
+  # 1st line is hold unrelated to the current processing (except for the leading
+  # command name)
+  # 2nd line is initially saved line that we didn't use, we can get rid of it
+  # 3rd line is the C code that we need to print, we'll swap it last
+  # 4rth line is the rest of the line on which the s cmd was
+  s/^\(.*\)\
+.*\
+\(.*\)$/\1\
+\2, /
+  x
+  t address_check
+}
+
+: regex_close_function
+# close C function call + add ";" if not an address
+s/$/)/
+/^s/s/$/;/
 x
 # push remaining current line on hold
 H
@@ -193,13 +224,15 @@ s/^\(.*\)\
 
 # save result to hold
 h
-# get rid of everything except C code (which is last), and print it.
-# the leading chars represent the name of the function
+# get rid of everything except C code (which is last), and print it, this is
+# also where we actually complete the name and fixed args of the function.
+# The very top of the hold contains the info needed to generate the correct
+# function name
 s/^\([^[:space:]]*\).*\
-/\1/p
-# clean the C code from the hold and the leading function name
+/\1(status, /p
+# clean the C code from the hold
 g
-s/^[^[:space:]]*\(.*\)\
+s/^\(.*\)\
 .*/\1/
 h
 # hold still contains current line, we need to remove it from there and also
@@ -209,8 +242,15 @@ s/.*\
 x
 s/\(.*\)\
 .*/\1/
+
+# TODO
+# check our leading chars and in the case of an address we need
+# to eat any blank chars and go back to the start
+
+# clean temp chars at the top of the hold
+s/^[^[:space:]]*//
 x
-t valid_cleanup
+t valid_cmd_cleanup
 b fail
 
 : b_cmd
@@ -261,11 +301,11 @@ g
 # only keep future current line in pattern, which becomes new current line
 s/.*\
 \(.*\)/\1/
-t valid_cleanup
+t valid_cmd_cleanup
 s/^/b cleanup: /
 b fail
 
-: valid_cleanup
+: valid_cmd_cleanup
 
 s/^\([; ]*\)*//g
 t separator_and_spaces_removed
