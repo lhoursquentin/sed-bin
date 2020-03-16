@@ -4,16 +4,43 @@
 # never use it to store data longer than a single command.
 
 : start
-H
 
+# remove ; and spaces
+s/^[; ][; ]*//g
+t start
+
+# If empty line, read the next one
+/^$/{
+  n
+  b start
+}
+
+# curly braces need to be printed, and then removed
+s/^[{}]/&\
+/
+t curly_bracket_found
+# if this last check failed then we can assume the next chars will be an actual
+# command
+b cmd_check
+
+: curly_bracket_found
+# print and remove
+P
+s/^..//
+t start
+
+: cmd_check
+H
 s/^b//; t b_cmd
 s/^s//; t s_cmd
 : address_check
 s|^/|&|; t addr_regex
 s|^\\\(.\)|\1|; t addr_regex
 s/^[0-9]/&/; t addr_number
-s/^/invalid command: /
-b fail
+s/^./invalid command: &/
+t fail
+s/^/Missing command/
+t fail
 
 # assume current line is saved at the bottom of the hold space
 
@@ -229,7 +256,9 @@ h
 # The very top of the hold contains the info needed to generate the correct
 # function name
 s/^\([^[:space:]]*\).*\
-/\1(status, /p
+/\1(status, /
+s/^[nr].*/if (&)/
+p
 # clean the C code from the hold
 g
 s/^\(.*\)\
@@ -242,15 +271,14 @@ s/.*\
 x
 s/\(.*\)\
 .*/\1/
-
-# TODO
-# check our leading chars and in the case of an address we need
-# to eat any blank chars and go back to the start
+# reset sub success value
+t valid_hold_reorder
+: valid_hold_reorder
 
 # clean temp chars at the top of the hold
 s/^[^[:space:]]*//
 x
-t valid_cmd_cleanup
+t start
 b fail
 
 : b_cmd
@@ -301,19 +329,9 @@ g
 # only keep future current line in pattern, which becomes new current line
 s/.*\
 \(.*\)/\1/
-t valid_cmd_cleanup
+t start
 s/^/b cleanup: /
 b fail
-
-: valid_cmd_cleanup
-
-s/^\([; ]*\)*//g
-t separator_and_spaces_removed
-: separator_and_spaces_removed
-
-/^$/n
-
-b start
 
 n
 : fail
