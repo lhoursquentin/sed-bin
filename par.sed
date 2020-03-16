@@ -38,6 +38,8 @@ t start
 
 : cmd_check
 s/^b[[:blank:]]*//; t b_cmd
+s/^t[[:blank:]]*//; t t_cmd
+s/^:[[:blank:]]*//; t label_cmd
 s/^s//; t s_cmd
 
 : address_check
@@ -274,6 +276,40 @@ t valid_hold_reorder
 s/^[^[:space:]]*//
 x
 t start
+b fail
+
+: t_cmd
+
+# eat what we will process right now, what remains is the future current line
+s/^[^[:blank:];}][^[:blank:];}]*/if (status->sub_success) { status->sub_success = false; goto &; }\
+/
+t valid_t_parsing
+s/^/t command parsing: /
+b fail
+
+: valid_t_parsing
+P
+s/.*\
+//
+t start
+s/^/t cleanup: /
+b fail
+
+: label_cmd
+
+# eat what we will process right now, what remains is the future current line
+s/^[^[:blank:];}][^[:blank:];}]*/&:\
+/
+t valid_label_parsing
+s/^/label command parsing: /
+b fail
+
+: valid_label_parsing
+P
+s/.*\
+//
+t start
+s/^/label cleanup: /
 b fail
 
 : b_cmd
