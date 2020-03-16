@@ -3,6 +3,13 @@
 # The first line of the hold space is used for temporary storage in this script,
 # never use it to store data longer than a single command.
 
+1{
+  x
+  s/^/\
+/
+  x
+}
+
 : start
 
 # remove ; and spaces
@@ -30,9 +37,9 @@ s/^..//
 t start
 
 : cmd_check
-H
-s/^b//; t b_cmd
+s/^b[[:blank:]]*//; t b_cmd
 s/^s//; t s_cmd
+
 : address_check
 s|^/|&|; t addr_regex
 s|^\\\(.\)|\1|; t addr_regex
@@ -41,8 +48,6 @@ s/^./invalid command: &/
 t fail
 s/^/Missing command/
 t fail
-
-# assume current line is saved at the bottom of the hold space
 
 # For addresses layout is as follows:
 
@@ -211,19 +216,11 @@ t s_cmd_eat_options
   x
   s/^[[:blank:]]*,[[:blank:]]*\([^[:blank:]]\)/\1/
   x
-  t clean_first_hold_address
+  t append_comma
   b regex_close_function
 
-  : clean_first_hold_address
-  # 1st line is hold unrelated to the current processing (except for the leading
-  # command name)
-  # 2nd line is initially saved line that we didn't use, we can get rid of it
-  # 3rd line is the C code that we need to print, we'll swap it last
-  # 4rth line is the rest of the line on which the s cmd was
-  s/^\(.*\)\
-.*\
-\(.*\)$/\1\
-\2, /
+  : append_comma
+  s/$/, /
   x
   t address_check
 }
@@ -238,12 +235,10 @@ H
 # clean hold
 # 1st line is hold unrelated to the current processing (except for the leading
 # command name)
-# 2nd line is initially saved line that we didn't use, we can get rid of it
-# 3rd line is the C code that we need to print, we'll swap it last
-# 4rth line is the rest of the line on which the s cmd was
+# 2rd line is the C code that we need to print, we'll swap it last
+# 3rth line is the rest of the line on which the s cmd was
 g
 s/^\(.*\)\
-.*\
 \(.*\)\
 \(.*\)$/\1\
 \3\
@@ -284,51 +279,16 @@ b fail
 : b_cmd
 
 # eat what we will process right now, what remains is the future current line
-s/^[^;}][^;}]*//
+s/^[^[:blank:];}][^[:blank:];}]*/goto &;\
+/
 t valid_b_parsing
 s/^/b command parsing: /
 b fail
 
 : valid_b_parsing
-# save future current line
-H
-# restore full hold pattern with current line + future current line
-g
-# swap current line and future current line (c-f -> f-c)
-s/\(.*\)\
-\(.*\)\
-\(.*\)/\1\
-\3\
-\2/
-t valid_b_internal_swap
-s/^/internal b command swap: /
-b fail
-: valid_b_internal_swap
-
-# save full and strip current line to have a clean hold
-h
-s/\(.*\)\
-.*/\1/
-t valid_b_internal_hold_cleaning
-s/^/internal b hold cleaning: /
-b fail
-: valid_b_internal_hold_cleaning
-
-# swap and now actually work on the current line
-x
+P
 s/.*\
-b *\([^;}][^;}]*\).*/goto \1;/p
-t valid_b_translation
-s/^/b translation: /
-b fail
-: valid_b_translation
-# current context is still dirty
-# remove first saved line and work on partial line
-# hold has future current line at the bottom
-g
-# only keep future current line in pattern, which becomes new current line
-s/.*\
-\(.*\)/\1/
+//
 t start
 s/^/b cleanup: /
 b fail
