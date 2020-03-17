@@ -37,10 +37,22 @@ s/^..//
 t start
 
 : cmd_check
+s|^#|//|; t comment
 s/^b[[:blank:]]*//; t b_cmd
 s/^t[[:blank:]]*//; t t_cmd
 s/^:[[:blank:]]*//; t label_cmd
 s/^s//; t s_cmd
+s/^[qdDhHgGlnNpPx]/&(status);\
+/
+t single_char_cmd
+s/^=/equal(status);\
+/
+t single_char_cmd
+
+# TODO missing cmds
+# aci
+# wr
+# y
 
 : address_check
 s|^/|&|; t addr_regex
@@ -51,9 +63,35 @@ t fail
 s/^/Missing command/
 t fail
 
-# For addresses layout is as follows:
+: comment
+p
+d
+
+: single_char_cmd
+P
+s/.*\
+//
+t start
+s/^/single char cmd cleanup: /
+b fail
 
 : addr_number
+x
+# work on the hold, if second address, do not add a newline (we've already built
+# the start of the C code on a new line)
+/^[^rn]/s/$/\
+/
+x
+# save address to hold and strip it from pattern, only leaving rest of the line
+H
+s/^[0-9]*//
+x
+# back to hold
+# remove H call newline and the rest of the line (only keep the number), also
+# include address type at the very top (n).
+s/^\([rn]*\)\(.*\)\
+\([0-9][0-9]*\).*/\1n\2\3/
+t valid_regex_parsing
 b fail
 
 : addr_regex
@@ -77,7 +115,7 @@ t regex_start_process
 # If we are processing the second address in a range, we want to avoid adding a
 # newline since we have the beginning of the C code for this range at the bottom
 # of the hold.
-/^[rn]r/!s/$/\
+/^.[^rn]/s/$/\
 /
 s/$/"/
 # reset sub success value
@@ -154,25 +192,23 @@ t regex_eat_next
 x
 
 # Found end of second regex addr, swap chars since we insert from the beginning
-s/^r\([nr]\)\(.*\
-\)\(.*\)$/\1r\2\3"/
+s/^r\([nr]\)\(.*\)$/\1r\2"/
 t addr_regex_handle_end
 
 # Found end of single regex addr, a second address might follow
-s/^r\([^nr].*\
-\)\(.*\)$/r\1\2"/
+s/^r\([^nr].*\)$/r\1"/
 t addr_regex_handle_end
 
 # Found second delim for the s cmd
-s/^s1\(.*\
-\)\(.*\)$/s\1\2", 0/
+s/^s1\(.*\)$/s\1", 0/
 t s_cmd_handle_options
 
 # Found first delim for the s cmd
-s/^s0\(.*\
-\)\(.*\)$/s1\1\2", "/
+s/^s0\(.*\)$/s1\1", "/
 x
 t regex_eat_next
+
+b fail
 
 : addr_regex_handle_end
 x
@@ -212,7 +248,7 @@ x
 t s_cmd_eat_options
 
 : valid_regex_parsing
-/^r[^rn]/{
+/^[rn][^rn]/{
   # single address, we need to check if another one follows
 
   x
@@ -254,7 +290,7 @@ h
 # function name
 s/^\([^[:space:]]*\).*\
 /\1(status, /
-s/^[nr].*/if (&)/
+s/^[nr].*/if (addr_&)/
 p
 # clean the C code from the hold
 g
