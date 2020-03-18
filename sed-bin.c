@@ -9,36 +9,7 @@
 #include "status.h"
 
 void sed_script(Status *status) {
-  // Insert generated sed to c code here
-s(status, "^s", "s", 0);
-if (status->sub_success) { status->sub_success = false; goto s_cleaning; }
-start_replacing:
-s(status, "^s\\(.\\)\\(.*\\)\\1\\(.*\\)\\1g", "s(status, \"\\2\", \"\\3\", S_OPT_G)", 0);
-if (status->sub_success) { status->sub_success = false; goto add_semi; }
-s(status, "^s\\(.\\)\\(.*\\)\\1\\(.*\\)\\1", "s(status, \"\\2\", \"\\3\", 0)", 0);
-if (status->sub_success) { status->sub_success = false; goto add_semi; }
-s(status, "^[ghGHpx]$", "&(status)", 0);
-if (status->sub_success) { status->sub_success = false; goto add_semi; }
-s(status, "^t \\(.*\\)", "if (status->sub_success) { status->sub_success = false; goto \\1; }", 0);
-if (status->sub_success) { status->sub_success = false; goto end; }
-s(status, "^b ", "goto ", 0);
-if (status->sub_success) { status->sub_success = false; goto add_semi; }
-s(status, "^:[[:blank:]]*\\(.*\\)", "\\1:", 0);
-if (status->sub_success) { status->sub_success = false; goto end; }
-
-add_semi:
-s(status, "^[^#].*", "&;", 0);
-
-goto end;
-
-s_cleaning:
-
-s(status, "\\\\", "\\\\\\\\", S_OPT_G);
-s(status, "\"", "\\\\\"", S_OPT_G);
-if (status->sub_success) { status->sub_success = false; goto start_replacing; }
-goto start_replacing;
-
-end:
+  #include "generated.c"
   return;
 }
 
@@ -51,9 +22,9 @@ int main(int argc, char **argv) {
   };
 
   while (read_pattern(&status)) {
-    // tests: s(&status, argv[1], argv[2], (argc > 3 && argv[3][0] == 'g') ? S_OPT_G : 0);
     sed_script(&status);
     puts(status.pattern_space);
+    // FIXME reset substitution success value
   }
   return EXIT_SUCCESS;
 }
