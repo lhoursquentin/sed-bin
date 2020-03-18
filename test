@@ -1,56 +1,60 @@
 #!/bin/sh
 
-# clash core tests
-
 . "${CLASH_ROOT-.}"/test/testlib/assert || exit
 
 bin=./sed-bin
+translator=./par.sed
+generated_file=generated.c
 
-s() {
-  input="$1"; shift
-  printf %s "$input" | "$bin" "$@" | head -c -1
+verify() {
+  sed_code="$1"
+  input="$2"
+  expected_output="$(mktemp)"
+  bin_output="$(mktemp)"
+  printf '%s\n' "$input" | sed "$1" > "$expected_output"
+  printf '%s\n' "$sed_code" |  "$translator" > "$generated_file"
+  make -s
+  printf '%s\n' "$input" |  "$bin" > "$bin_output"
+
+  assert_true diff "$expected_output" "$bin_output" -- "input: $input - code: $sed_code"
+
+  rm -f "$bin_output" "$expected_output"
 }
 
 # Replace by smaller
-assert_out s 'Hello World' 'Hell' 'Y' -- 'Yo World' # start
-assert_out s 'Hello World' 'llo W' 'y w' -- 'Hey world' # middle
-assert_out s 'Hello World' ' World' '!' -- 'Hello!' # end
+verify 's/Hell/Y/' 'Hello World'
+verify 's/llo W/y w/' 'Hello World'
+verify 's/ World/!/' 'Hello World'
 # Replace by bigger
-assert_out s 'Hello World' 'Hello' 'What in the' -- 'What in the World' # start
-assert_out s 'Hello World' 'o' ' what is wrong with this' -- 'Hell what is wrong with this World' # middle
-assert_out s 'Hello World' 'ld' 'k! Oh no :(' -- 'Hello Work! Oh no :(' # end
+verify 's/Hello/What in the/' 'Hello World'
+verify 's/o/ what is wrong with this/' 'Hello World'
+verify 's/ld/k! Oh no :(/' 'Hello World'
 # Replace by same size
-assert_out s 'Hello World' 'Hello' 'Yolo!' -- 'Yolo! World' # start
-assert_out s 'Hello World' 'o' 'a' -- 'Hella World' # middle
-assert_out s 'Hello World' 'ld' 'k!' -- 'Hello Work!' # end
-
+verify 's/Hello/Yolo!/' 'Hello World'
+verify 's/o/a/' 'Hello World'
+verify 's/ld/k!/' 'Hello World'
 # With regex
-assert_out s 'Hello World' '[hH]' 'Well h' -- 'Well hello World' # start
-assert_out s 'Hello World' '. .' 'a-w' -- 'Hella-world' # middle
-assert_out s 'Hello World' 'o.*' '!' -- 'Hell!' # end
-assert_out s 'Hello World' '.*' '' -- '' # full
-assert_out s 'Hello World' '.*' 'Bye' -- 'Bye' # full
-assert_out s 'Hello World' '[Hh]ello.* World*' '' -- '' # full
-
-assert_out s 'Hello World' 'Hello World' 'Bye' -- 'Bye' # full
-assert_out s 'Hello World' 'Hello World' '' -- '' # full
-
+verify 's/[hH]/Well h/' 'Hello World'
+verify 's/. ./a-w/' 'Hello World'
+verify 's/o.*/!/' 'Hello World'
+verify 's/.*//' 'Hello World'
+verify 's/.*/Bye/' 'Hello World'
+verify 's/[Hh]ello.* World*//' 'Hello World'
+verify 's/Hello World/Bye/' 'Hello World'
+verify 's/Hello World//' 'Hello World'
 # Fail
-assert_out s 'Hello World' 'xz' 'nope' -- 'Hello World' # end
-
+verify 's/xz/nope/' 'Hello World'
 # Back refs
-assert_out s 'Hello World' '\([^ ]*\)' '\1! \1' -- 'Hello! Hello World'
-assert_out s 'Hello World' '\([^ ]*\) \(.\)' '\1! \2 ' -- 'Hello! W orld'
-
-assert_out s 'Hello World' '.*r' '& & &' -- 'Hello Wor Hello Wor Hello World'
-
+verify 's/\([^ ]*\)/\1! \1/' 'Hello World'
+verify 's/\([^ ]*\) \(.\)/\1! \2 /' 'Hello World'
+verify 's/.*r/& & &/' 'Hello World'
 # g opt
-assert_out s 'Hello World' 'o' 'a' 'g' -- 'Hella Warld'
-assert_out s 'Hello World' 'o' 'abocde' 'g' -- 'Hellabocde Wabocderld'
-assert_out s 'Hello World' 'o' ' yo' 'g' -- 'Hell yo W yorld'
-assert_out s 'Oh damn god damnit' 'damn' 'no' 'g' -- 'Oh no god noit'
-assert_out s 'Oh damn god damnit' 'damn' 'n' 'g' -- 'Oh n god nit'
-assert_out s 'Hello World' '.*' 'Bye' 'g' -- 'Bye' # full
-assert_out s 'Hello World' '\([^ ]*\)' '\1! \1' 'g' -- 'Hello! Hello World! World'
+verify 's/o/a/g' 'Hello World'
+verify 's/o/abocde/g' 'Hello World'
+verify 's/o/ yo/g' 'Hello World'
+verify 's/damn/no/g' 'Oh damn god damnit'
+verify 's/damn/n/g' 'Oh damn god damnit'
+verify 's/.*/Bye/g' 'Hello World'
+verify 's/\([^ ]*\)/\1! \1/g' 'Hello World'
 
 end_tests
