@@ -143,48 +143,38 @@ x
 
 s/^\(.\)\1/\1/
 t regex_valid_delim_eaten
+
 # case of escaped delimiter s/bin\/bash/bin\/sh/, in that case we just remove
 # the backslash and process the char as any non delimiter one.
-s/^\(.\)\\\1/\1\1/
-t regex_save_escaped_delim
-# literal double quotes and backslashes must be escaped in the C code
-s/^\(.\)\([\"]\)/\1\\\2/
-t regex_save_char_with_escape
+s/^\(.\)\\\1/\1\
+\1/
+t regex_save_char
+s/^\(.\)\(\\\\\)/\2\2\
+\1/
+t regex_save_char
+# TODO, backslash should be removed when no op, example \j -> j
+# Literal double quotes and backslashes must be escaped in the C code
+s/^\(.\)\([\"]\)/\\\2\
+\1/
+t regex_save_char
 
-b regex_save_char
-
-: regex_save_char_with_escape
-
-# {delim}{escape+char} -> {escape+char}{delim}
-s/^\(.\)\(..\)/\2\1/
-H
-# get rid of escape + eaten char
-s/..//
-x
-# On the bottom line we have: {escape + char eaten}{delim}{rest of line}, we
-# just want to append the {char eaten} to the end of the line before the last,
-# the one containing the C code under construction.
-s/\(.*\)\
-\(..\).*/\1\2/
-x
-
-t regex_eat_next
+# Default case, normal character
+s/^\(.\)\(.\)/\2\
+\1/
+t regex_save_char
 
 : regex_save_char
-
-# {delim}{char} -> {char}{delim}
-s/^\(.\)\(.\)/\2\1/
-# we can skip the swap if it was an escaped delim since \1 == \2
-: regex_save_escaped_delim
 H
-# get rid of eaten char
-s/.//
+# get rid of eaten char and newline
+s/.*\
+//
 x
-# On the bottom line we have: {char eaten}{delim}{rest of line}, we just want to
-# append the {char eaten} to the end of the line before the last, the one
-# containing the C code under construction.
+# On the bottom line we have: {chars eaten}<newline>{delim}{rest of line}, we
+# just want to append the {chars eaten} to the end of the line before the last,
+# the one containing the C code under construction.
 s/\(.*\)\
-\(.\).*/\1\2/
+\(.*\)\
+.*/\1\2/
 x
 t regex_eat_next
 
