@@ -56,5 +56,6 @@ verify 's/damn/no/g' 'Oh damn god damnit'
 verify 's/damn/n/g' 'Oh damn god damnit'
 verify 's/.*/Bye/g' 'Hello World'
 verify 's/\([^ ]*\)/\1! \1/g' 'Hello World'
+verify 'H;H;G;' 'Hello World'
 
 end_tests

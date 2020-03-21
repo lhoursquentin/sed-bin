@@ -194,6 +194,18 @@ void g(Status *status) {
   );
 }
 
+void G(Status *status) {
+  char *pattern_space = status->pattern_space;
+  const char *hold_space = status->hold_space;
+  const int pattern_space_len = strlen(pattern_space);
+  memcpy(
+    pattern_space + pattern_space_len + 1,
+    hold_space,
+    strlen(hold_space)
+  );
+  pattern_space[pattern_space_len] = '\n';
+}
+
 void h(Status *status) {
   const char *pattern_space = status->pattern_space;
   char *hold_space = status->hold_space;
@@ -202,6 +214,18 @@ void h(Status *status) {
     pattern_space,
     strlen(pattern_space)
   );
+}
+
+void H(Status *status) {
+  const char *pattern_space = status->pattern_space;
+  char *hold_space = status->hold_space;
+  const int hold_space_len = strlen(hold_space);
+  memcpy(
+    hold_space + hold_space_len + 1,
+    pattern_space,
+    strlen(pattern_space)
+  );
+  hold_space[hold_space_len] = '\n';
 }
 
 void p(const Status *status) {

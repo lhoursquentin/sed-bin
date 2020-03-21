@@ -8,7 +8,9 @@
 #define S_OPT_G 0x01
 
 void g(Status *status);
+void G(Status *status);
 void h(Status *status);
+void H(Status *status);
 void p(const Status *status);
 void s(
   Status *status,
