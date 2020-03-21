@@ -232,3 +232,12 @@ void p(const Status *status) {
   const char *pattern_space = status->pattern_space;
   puts(pattern_space);
 }
+
+void P(const Status *status) {
+  const char *pattern_space = status->pattern_space;
+  printf(
+    "%.*s\n",
+    strchr(pattern_space, '\n') - pattern_space,
+    pattern_space
+  );
+}

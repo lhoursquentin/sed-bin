@@ -16,7 +16,7 @@ verify() {
   make -s
   printf '%s\n' "$input" |  "$bin" > "$bin_output"
 
-  assert_true diff "$expected_output" "$bin_output" -- "input: $input - code: $sed_code"
+  assert_true diff --side-by-side "$expected_output" "$bin_output" -- "input: $input - code: $sed_code"
 
   rm -f "$bin_output" "$expected_output"
 }
@@ -56,6 +56,12 @@ verify 's/damn/no/g' 'Oh damn god damnit'
 verify 's/damn/n/g' 'Oh damn god damnit'
 verify 's/.*/Bye/g' 'Hello World'
 verify 's/\([^ ]*\)/\1! \1/g' 'Hello World'
+
+# H and G
 verify 'H;H;G;' 'Hello World'
+
+# p and P
+verify 'h; s/ World//; x; s/Hello //; H; s/.*/end/; H; g; p' 'Hello World'
+verify 'h; s/ World//; x; s/Hello //; H; s/.*/end/; H; g; P' 'Hello World'
 
 end_tests

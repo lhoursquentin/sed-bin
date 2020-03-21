@@ -12,6 +12,7 @@ void G(Status *status);
 void h(Status *status);
 void H(Status *status);
 void p(const Status *status);
+void P(const Status *status);
 void s(
   Status *status,
   const char* pattern,
