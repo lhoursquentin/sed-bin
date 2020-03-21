@@ -42,10 +42,13 @@ s/^b[[:blank:]]*//; t b_cmd
 s/^t[[:blank:]]*//; t t_cmd
 s/^:[[:blank:]]*//; t label_cmd
 s/^s//; t s_cmd
-s/^[qdDhHgGlnNpPx]/&(status);\
+s/^[dDhHgGlnNpPx]/&(status);\
 /
 t single_char_cmd
 s/^=/equal(status);\
+/
+t single_char_cmd
+s/^q/exit(0);\
 /
 t single_char_cmd
 
@@ -216,7 +219,7 @@ x
 s/.//
 t s_cmd_eat_options
 
-# could do something shorter with y/[gp]/[GP]/
+# could do something shorter with y/gp/GP/
 : s_cmd_eat_options
 s/^g/G/
 t s_cmd_add_prefix_opt
