@@ -42,10 +42,10 @@ s/^b[[:blank:]]*//; t b_cmd
 s/^t[[:blank:]]*//; t t_cmd
 s/^:[[:blank:]]*//; t label_cmd
 s/^s//; t s_cmd
-s/^[dDhHgGlnNpPx]/&(status);\
+s/^[dDhHgGlnNpPx]/&(\&status);\
 /
 t single_char_cmd
-s/^=/equal(status);\
+s/^=/equal(\&status);\
 /
 t single_char_cmd
 s/^q/exit(0);\
@@ -282,7 +282,7 @@ h
 # The very top of the hold contains the info needed to generate the correct
 # function name
 s/^\([^[:space:]]*\).*\
-/\1(status, /
+/\1(\&status, /
 s/^[nr].*/if (addr_&)/
 p
 # clean the C code from the hold
@@ -310,7 +310,7 @@ b fail
 : t_cmd
 
 # eat what we will process right now, what remains is the future current line
-s/^[^[:blank:];}][^[:blank:];}]*/if (status->sub_success) { status->sub_success = false; goto &; }\
+s/^[^[:blank:];}][^[:blank:];}]*/if (\&status->sub_success) { status.sub_success = false; goto &; }\
 /
 t valid_t_parsing
 s/^/t command parsing: /

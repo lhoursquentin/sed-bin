@@ -8,11 +8,6 @@
 #include "read.h"
 #include "status.h"
 
-void sed_script(Status *status) {
-  #include "generated.c"
-  return;
-}
-
 int main(int argc, char **argv) {
   Status status = {
     .pattern_space = (char[PATTERN_SIZE]){},
@@ -22,9 +17,9 @@ int main(int argc, char **argv) {
   };
 
   while (read_pattern(&status)) {
-    sed_script(&status);
-    puts(status.pattern_space);
     // FIXME reset substitution success value
+    #include "generated.c"
+    puts(status.pattern_space);
   }
   return EXIT_SUCCESS;
 }
