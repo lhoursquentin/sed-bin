@@ -5,23 +5,23 @@
 
 #include "address.h"
 
-bool addr_range_rr(const Status *status, const char *start, const char *end) {
+bool addr_rr(const Status *status, const char *start, const char *end) {
   return false; // TODO
 }
 
-bool addr_range_rn(const Status *status, const char *start, const int end) {
+bool addr_rn(const Status *status, const char *start, const int end) {
   return false; // TODO
 }
 
-bool addr_range_nr(const Status *status, const int start, const char *end) {
+bool addr_nr(const Status *status, const int start, const char *end) {
   return false; // TODO
 }
 
-bool addr_range_nn(const Status *status, const int start, const int end) {
+bool addr_nn(const Status *status, const int start, const int end) {
   return false; // TODO
 }
 
-bool addr_regex(const Status *status, const char *regex) {
+bool addr_r(const Status *status, const char *regex) {
   char *pattern_space = status->pattern_space;
   regex_t regex_obj;
 
@@ -39,6 +39,6 @@ bool addr_regex(const Status *status, const char *regex) {
   return true;
 }
 
-bool addr_number(const Status *status, const int line_nb) {
+bool addr_n(const Status *status, const int line_nb) {
   return status->line_nb == line_nb;
 }
