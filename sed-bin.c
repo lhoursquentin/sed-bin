@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
     .pattern_space = (char[PATTERN_SIZE]){},
     .hold_space = (char[PATTERN_SIZE]){},
     .sub_success = false,
-    .line_nb = 1,
+    .line_nb = 0,
   };
 
   while (read_pattern(&status)) {
