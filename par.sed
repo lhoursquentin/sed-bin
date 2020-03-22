@@ -310,7 +310,7 @@ b fail
 : t_cmd
 
 # eat what we will process right now, what remains is the future current line
-s/^[^[:blank:];}][^[:blank:];}]*/if (\&status->sub_success) { status.sub_success = false; goto &; }\
+s/^[^[:blank:];}][^[:blank:];}]*/if (status.sub_success) { status.sub_success = false; goto &; }\
 /
 t valid_t_parsing
 s/^/t command parsing: /
