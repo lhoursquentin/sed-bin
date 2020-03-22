@@ -184,6 +184,14 @@ void x(Status *status) {
   status->hold_space = pattern_space;
 }
 
+void equal(Status *status) {
+  unsigned int line_nb = status->line_nb;
+  printf(
+      "%d\n",
+      line_nb
+  );
+}
+
 void g(Status *status) {
   char *pattern_space = status->pattern_space;
   const char *hold_space = status->hold_space;

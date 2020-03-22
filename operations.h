@@ -7,6 +7,7 @@
 
 #define S_OPT_G 0x01
 
+void equal(Status *status);
 void g(Status *status);
 void G(Status *status);
 void h(Status *status);

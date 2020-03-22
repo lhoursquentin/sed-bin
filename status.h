@@ -10,7 +10,7 @@ typedef struct {
   char *pattern_space;
   char *hold_space;
   bool sub_success;
-  int line_nb;
+  unsigned int line_nb;
 } Status;
 
 #endif /* STATUS_H */
