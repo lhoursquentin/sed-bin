@@ -14,9 +14,16 @@ int main(int argc, char **argv) {
     .hold_space = (char[PATTERN_SIZE]){},
     .sub_success = false,
     .line_nb = 0,
+    .skip_read = false,
   };
 
-  while (read_pattern(&status)) {
+  while (true) {
+    if (status.skip_read) {
+      status.skip_read = false;
+    } else if (!read_pattern(&status, status.pattern_space, PATTERN_SIZE)) {
+      break;
+    }
+    status.skip_read = false;
     // FIXME reset substitution success value
     #include "generated.c"
     puts(status.pattern_space);

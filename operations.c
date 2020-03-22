@@ -1,10 +1,12 @@
 #include <assert.h>
 #include <regex.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "operations.h"
 #include "status.h"
+#include "read.h"
 
 static int expand_replace(
     char *replace_expanded,
@@ -184,6 +186,27 @@ void x(Status *status) {
   status->hold_space = pattern_space;
 }
 
+void d(Status *status) {
+  status->pattern_space[0] = '\0';
+}
+
+operation_ret D(Status *status) {
+  char *pattern_space = status->pattern_space;
+  const char *newline_location = strchr(pattern_space, '\n');
+  if (newline_location == NULL) {
+    pattern_space[0] = '\0';
+    return CONTINUE;
+  }
+
+  memmove(
+    pattern_space,
+    newline_location + 1, // + 1 to start copying after the newline
+    strlen(newline_location + 1) + 1 // last +1 to move \0 as well
+  );
+  status->skip_read = true;
+  return CONTINUE;
+}
+
 void equal(Status *status) {
   unsigned int line_nb = status->line_nb;
   printf(
@@ -236,6 +259,29 @@ void H(Status *status) {
   hold_space[hold_space_len] = '\n';
 }
 
+operation_ret n(Status *status) {
+  puts(status->pattern_space);
+  if (!read_pattern(status, status->pattern_space, PATTERN_SIZE)) {
+    return BREAK;
+  }
+  return 0;
+}
+
+operation_ret N(Status *status) {
+  char *pattern_space = status->pattern_space;
+  const int pattern_space_len = strlen(pattern_space);
+  if (!read_pattern(
+        status,
+        pattern_space + pattern_space_len + 1,
+        PATTERN_SIZE - pattern_space_len - 1)
+  ) {
+    puts(status->pattern_space);
+    return BREAK;
+  }
+  pattern_space[pattern_space_len] = '\n';
+  return 0;
+}
+
 void p(const Status *status) {
   const char *pattern_space = status->pattern_space;
   puts(pattern_space);
@@ -248,4 +294,9 @@ void P(const Status *status) {
     strchr(pattern_space, '\n') - pattern_space,
     pattern_space
   );
+}
+
+void q(const Status *status) {
+  p(status);
+  exit(0);
 }

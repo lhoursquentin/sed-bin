@@ -42,13 +42,19 @@ s/^b[[:blank:]]*//; t b_cmd
 s/^t[[:blank:]]*//; t t_cmd
 s/^:[[:blank:]]*//; t label_cmd
 s/^s//; t s_cmd
-s/^[dDhHgGlnNpPx]/&(\&status);\
+s/^[hHgGlpPqx]/&(\&status);\
 /
 t single_char_cmd
 s/^=/equal(\&status);\
 /
 t single_char_cmd
-s/^q/exit(0);\
+s/^d/&(\&status); continue;\
+/
+t single_char_cmd
+s/^D/if (&(\&status) == CONTINUE) continue;\
+/
+t single_char_cmd
+s/^[Nn]/if (&(\&status) == BREAK) break;\
 /
 t single_char_cmd
 

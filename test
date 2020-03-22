@@ -11,10 +11,14 @@ verify() {
   input="$2"
   expected_output="$(mktemp)"
   bin_output="$(mktemp)"
-  printf '%s\n' "$input" | sed "$1" > "$expected_output"
-  printf '%s\n' "$sed_code" |  "$translator" > "$generated_file"
+  if ! printf '%s\n' "$input" | sed "$1" > "$expected_output"; then
+    printf 'Invalid sed script: %s\n' "$1" >&2
+    exit 1
+  fi
+
+  printf '%s\n' "$sed_code" | "$translator" > "$generated_file"
   make -s
-  printf '%s\n' "$input" |  "$bin" > "$bin_output"
+  printf '%s\n' "$input" | "$bin" > "$bin_output"
 
   assert_true diff --side-by-side "$expected_output" "$bin_output" -- "input: $input - code: $sed_code"
 
@@ -58,11 +62,44 @@ verify 's/damn/n/g' 'Oh damn god damnit'
 verify 's/.*/Bye/g' 'Hello World'
 verify 's/\([^ ]*\)/\1! \1/g' 'Hello World'
 
+# t
+verify ': start; s/^[^[:blank:]]//; t start' 'Hello World'
+# FIXME needs case for t to check if success is reset after new cycle
+
+# b
+verify ':start; s/.//; /^[^[:blank:]]/b start' 'Hello World'
+
 # H and G
 verify 'H;H;G;' 'Hello World'
 
 # p and P
 verify 'h; s/ World//; x; s/Hello //; H; s/.*/end/; H; g; p' 'Hello World'
 verify 'h; s/ World//; x; s/Hello //; H; s/.*/end/; H; g; P' 'Hello World'
+
+# = equal
+verify '=' 'Abc'
+verify '=' 'This line
+is not a
+single line'
+
+# d and D
+verify 's/Hello/foo/; t end; d; s/foo/bar/; :end' 'Hello
+World
+Hello
+You'
+verify 's/Hello/foo/; t end; D; s/foo/bar/; :end' 'Hello
+World
+Hello
+You'
+verify '/^hey/{=;q}; N; s/bar/hey/; D; s/.*/unreach/; p' 'foo
+bar
+baz'
+
+# n and N
+verify 's/Hello/foo/; n; s/World/bar/; q' 'Hello
+World'
+verify ': start; s/^.//; N; b start' 'This line
+is not a
+single line'
 
 end_tests

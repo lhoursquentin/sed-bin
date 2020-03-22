@@ -4,6 +4,11 @@
 #define PATTERN_SIZE 1024
 #define MAX_MATCHES 9
 
+typedef enum {
+  CONTINUE,
+  BREAK
+} operation_ret;
+
 #include <stdbool.h>
 
 typedef struct {
@@ -11,6 +16,7 @@ typedef struct {
   char *hold_space;
   bool sub_success;
   unsigned int line_nb;
+  bool skip_read;
 } Status;
 
 #endif /* STATUS_H */
