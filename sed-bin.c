@@ -24,7 +24,6 @@ int main(int argc, char **argv) {
       break;
     }
     status.skip_read = false;
-    // FIXME reset substitution success value
     #include "generated.c"
     puts(status.pattern_space);
   }

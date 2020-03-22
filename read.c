@@ -8,6 +8,7 @@ bool read_pattern(Status *status, char *buf, int size) {
   if (!fgets(buf, size, stdin)) {
     return 0;
   }
+  status->sub_success = false;
   status->line_nb++;
   int read_len = strlen(buf);
   if (read_len && buf[read_len - 1] == '\n') {

@@ -64,7 +64,13 @@ verify 's/\([^ ]*\)/\1! \1/g' 'Hello World'
 
 # t
 verify ': start; s/^[^[:blank:]]//; t start' 'Hello World'
-# FIXME needs case for t to check if success is reset after new cycle
+# t, verify that reading a newline resets the substitution success to false
+verify 't end; s/foo//; d; : end' 'foo
+bar'
+verify 's/.*/yo/; n; t end; p; : end; d' 'foo
+bar'
+verify 's/.*/yo/; N; t end; p; : end; d' 'foo
+bar'
 
 # b
 verify ':start; s/.//; /^[^[:blank:]]/b start' 'Hello World'
