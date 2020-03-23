@@ -245,7 +245,7 @@ void g(Status *status) {
   memcpy(
     pattern_space,
     hold_space,
-    strlen(hold_space)
+    strlen(hold_space) + 1 // include \0
   );
 }
 
@@ -254,9 +254,9 @@ void G(Status *status) {
   const char *hold_space = status->hold_space;
   const int pattern_space_len = strlen(pattern_space);
   memcpy(
-    pattern_space + pattern_space_len + 1,
+    pattern_space + pattern_space_len + 1, // we'll place the \n in between
     hold_space,
-    strlen(hold_space)
+    strlen(hold_space) + 1 // include \0
   );
   pattern_space[pattern_space_len] = '\n';
 }
@@ -267,7 +267,7 @@ void h(Status *status) {
   memcpy(
     hold_space,
     pattern_space,
-    strlen(pattern_space)
+    strlen(pattern_space) + 1 // include \0
   );
 }
 
@@ -276,9 +276,9 @@ void H(Status *status) {
   char *hold_space = status->hold_space;
   const int hold_space_len = strlen(hold_space);
   memcpy(
-    hold_space + hold_space_len + 1,
+    hold_space + hold_space_len + 1, // we'll place the \n in between
     pattern_space,
-    strlen(pattern_space)
+    strlen(pattern_space) + 1 // include \0
   );
   hold_space[hold_space_len] = '\n';
 }
