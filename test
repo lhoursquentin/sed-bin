@@ -11,8 +11,8 @@ verify() {
   input="$2"
   expected_output="$(mktemp)"
   bin_output="$(mktemp)"
-  if ! printf '%s\n' "$input" | sed "$1" > "$expected_output"; then
-    printf 'Invalid sed script: %s\n' "$1" >&2
+  if ! printf '%s\n' "$input" | sed "$sed_code" > "$expected_output"; then
+    printf 'Invalid sed script: %s\n' "$sed_code" >&2
     exit 1
   fi
 
@@ -118,5 +118,9 @@ World'
 verify ': start; s/^.//; N; b start' 'This line
 is not a
 single line'
+
+# ultimate test, compile the translator and verify that the binary can become
+# the translator
+verify "$(cat "$translator")" "$(cat "$translator")"
 
 end_tests
