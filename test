@@ -6,23 +6,36 @@ bin=./sed-bin
 translator=./par.sed
 generated_file=generated.c
 
+trap 'rm -f "$bin_output" "$expected_output"' EXIT
+expected_output="$(mktemp)"
+bin_output="$(mktemp)"
+
+compile_translator() {
+  # Tranlate the translator with itself
+  "$translator" < "$translator" > "$generated_file" &&
+  make -s &&
+  # Compiled tranlator should be able to translate the translator and yield the
+  # exact same output
+  "$bin" < "$translator" > "$bin_output" &&
+  diff --side-by-side --suppress-common-lines "$generated_file" "$bin_output"
+}
+
+equal_output() {
+  echo --------------------------
+
+  printf '%s\n' "$input" | sed "$sed_code" > "$expected_output" &&
+  printf '%s\n' "$sed_code" | "$translator" > "$generated_file" &&
+  make -s &&
+  printf '%s\n' "$input" | "$bin" > "$bin_output" &&
+  diff --side-by-side "$expected_output" "$bin_output"
+}
+
 verify() {
   sed_code="$1"
   input="$2"
-  expected_output="$(mktemp)"
-  bin_output="$(mktemp)"
-  if ! printf '%s\n' "$input" | sed "$sed_code" > "$expected_output"; then
-    printf 'Invalid sed script: %s\n' "$sed_code" >&2
-    exit 1
-  fi
 
-  printf '%s\n' "$sed_code" | "$translator" > "$generated_file"
-  make -s
-  printf '%s\n' "$input" | "$bin" > "$bin_output"
-
-  assert_true diff --side-by-side "$expected_output" "$bin_output" -- "input: $input - code: $sed_code"
-
-  rm -f "$bin_output" "$expected_output"
+  assert_true equal_output "$sed_code" -- "input: $input"
+  echo ==========================
 }
 
 # Replace by smaller
@@ -121,6 +134,6 @@ single line'
 
 # ultimate test, compile the translator and verify that the binary can become
 # the translator
-verify "$(cat "$translator")" "$(cat "$translator")"
+assert_true compile_translator -- 'translating the translator with a compiled translator yields the original translation'
 
 end_tests
