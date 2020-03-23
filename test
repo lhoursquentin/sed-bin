@@ -61,6 +61,17 @@ verify 's/damn/no/g' 'Oh damn god damnit'
 verify 's/damn/n/g' 'Oh damn god damnit'
 verify 's/.*/Bye/g' 'Hello World'
 verify 's/\([^ ]*\)/\1! \1/g' 'Hello World'
+verify 's/[^a]/foo/g' 'bar'
+verify 's/^a/foo/g' 'aaaa'
+
+# s empty match check
+verify 's/[^ ]*/yo/g' 'Hello world'
+verify 's/[^ ]*/yo/g' 'Hello '
+verify 's/[^ ]*/yo/' 'foo'
+
+# s insert at beginning and end
+verify 's/^/Leading insert/' 'Hello World'
+verify 's/$/Trailing insert/' 'Hello World'
 
 # t
 verify ': start; s/^[^[:blank:]]//; t start' 'Hello World'

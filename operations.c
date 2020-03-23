@@ -86,11 +86,17 @@ static int substitution(
     Status *status,
     char *pattern_space,
     const char *pattern,
-    const char *replace
-    )
-{
+    const char *replace,
+    bool first_sub
+) {
   regmatch_t pmatch[MAX_MATCHES];
-  if (regexec(regex, pattern_space, MAX_MATCHES, pmatch, 0)) {
+  if (regexec(
+        regex,
+        pattern_space,
+        MAX_MATCHES,
+        pmatch,
+        first_sub ? 0 : REG_NOTBOL
+  )) {
     regfree(regex);
     return 0;
   }
@@ -99,23 +105,36 @@ static int substitution(
 
   const int pattern_space_len = strlen(pattern_space);
   const int so = pmatch[0].rm_so; // start offset
-  if (so != -1 && pmatch[0].rm_eo == 0 ) {
-    // Emtpy match, example: echo foo bar | sed 's/[^ ]*/yo/g'
-    // Here foo is replaced by yo, then we move to ' bar', which is an empty
-    // match, the regex matches but does not eat any char, in that case we can
-    // just go to the next char an try a new match.
-    return 1;
-  }
+  assert(so != -1);
   const int eo = pmatch[0].rm_eo; // end offset
-
   char replace_expanded[512]; // TODO abitrary size, might be too small
   const int replace_expanded_len =
     expand_replace(replace_expanded, pattern_space, replace, pmatch);
 
-  int po;
-  int ro;
+  // empty match, s/^/foo/ for instance
+  if (eo == 0) {
+    if (first_sub) {
+      memmove(
+        pattern_space + replace_expanded_len,
+        pattern_space,
+        pattern_space_len + 1 // include \0
+      );
+      memmove(pattern_space, replace_expanded, replace_expanded_len);
+      return replace_expanded_len;
+    } else if (pattern_space_len == 1) {
+      // case:  echo 'Hello ' | sed 's|[^ ]*|yo|g'
+      pattern_space++;
+      memmove(pattern_space, replace_expanded, replace_expanded_len);
+      pattern_space[replace_expanded_len] = '\0';
+      return replace_expanded_len + 1; // +1 since we did pattern_space++
+    }
+    return 1;
+  }
 
-  for (po = so, ro = 0; po < eo && ro < replace_expanded_len; ++po, ++ro) {
+  int po = 0;
+  int ro = 0;
+
+  for (po = so; po < eo && ro < replace_expanded_len; ++po, ++ro) {
     pattern_space[po] = replace_expanded[ro];
   }
 
@@ -166,14 +185,19 @@ void s(
 
   char *pattern_space = status->pattern_space;
   int pattern_offset = 0;
+  bool first_sub = true;
   do {
     pattern_offset = substitution(
       &regex,
       status,
       pattern_space,
       pattern,
-      replace
+      replace,
+      first_sub
     );
+    // if opt_g is enabled then we want to avoid ^ to keep its meaning for the
+    // next iterations
+    first_sub = false;
     pattern_space += pattern_offset;
   } while (opt_g && pattern_space[0] && pattern_offset);
   regfree(&regex);
