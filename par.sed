@@ -48,7 +48,7 @@ t single_char_cmd
 s/^=/equal(\&status);\
 /
 t single_char_cmd
-s/^d/&(\&status); continue;\
+s/^d/{ &(\&status); continue; }\
 /
 t single_char_cmd
 s/^D/if (&(\&status) == CONTINUE) continue;\

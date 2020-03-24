@@ -128,6 +128,7 @@ You'
 verify '/^hey/{=;q}; N; s/bar/hey/; D; s/.*/unreach/; p' 'foo
 bar
 baz'
+verify '/match fail/d; s/foo/bar/' 'foo'
 
 # n and N
 verify 's/Hello/foo/; n; s/World/bar/; q' 'Hello
