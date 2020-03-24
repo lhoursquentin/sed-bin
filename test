@@ -1,6 +1,90 @@
 #!/bin/sh
 
-. "${CLASH_ROOT-.}"/test/testlib/assert || exit
+# testlib taken from https://github.com/lhoursquentin/clash
+c_red="$(printf '\033[1;31m')"
+c_green="$(printf '\033[1;32m')"
+c_bold="$(printf '\033[1m')"
+c_reset="$(printf '\033[0m')"
+
+condition()
+{
+  nb_args="$#"
+  set -- "$@" "$@"
+  index=0
+  while [ "$index" -lt "$nb_args" ]; do
+    if [ "$1" = '--' ]; then
+      separator_index="$index"
+    fi
+    index="$((index + 1))"
+    shift
+  done
+  index=0
+  while [ "$index" != "$separator_index" ]; do
+    set -- "$@" "$1"
+    index="$((index + 1))"
+    shift
+  done
+  shift "$(($# - separator_index))"
+  "$@" || return # return for set -e
+}
+
+assert() {
+  condition_retval=0
+  condition "$@" || condition_retval="$?" # for set -e
+  if [ "$condition_retval" "$assert_operator" 0 ]; then
+    return
+  fi
+
+  assertion="$*"
+  shift "$((separator_index + 1))"
+  {
+    [ -t 2 ] && color=true || unset color
+    printf '%sError%s - ' "${color+$c_red}" "${color+$c_reset}"
+    printf "$@"
+    echo
+  } >&2
+  failed_assertions="$failed_assertions
+$assertion
+-------------------------------------"
+  return 1
+}
+
+assert_true() {
+  printf '%s -> true\n' "$*"
+  assert_operator='='
+  assert "$@"
+}
+
+assert_false() {
+  printf '%s -> false\n' "$*"
+  assert_operator='!='
+  assert "$@"
+}
+
+assert_out() {
+  printf '%s\n' "$*"
+  out_file="$(mktemp)"
+  condition "$@" > "$out_file"
+  shift "$((separator_index + 1))"
+  output="$(cat "$out_file"; printf x)"
+  output="${output%x}"
+  rm "$out_file"
+  assert_operator='='
+  assert [ "$output" = "$*" ] -- 'Output differ'
+}
+
+end_tests() {
+  [ -t 1 ] && color=true || unset color
+  printf '%s================ END ================%s\n' "${color+$c_bold}" "${color+$c_reset}"
+  if [ -z "$failed_assertions" ]; then
+    printf '%sPASS%s\n' "${color+$c_green}" "${color+$c_reset}"
+  else
+    printf '%s\n%sFAIL%s\n' "$failed_assertions" "${color+$c_red}" "${color+$c_reset}"
+    return 1
+  fi
+}
+
+# end of testlib
 
 bin=./sed-bin
 translator=./par.sed
