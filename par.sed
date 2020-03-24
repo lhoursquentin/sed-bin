@@ -100,7 +100,7 @@ x
 # include address type at the very top (n).
 s/^\([rn]*\)\(.*\)\
 \([0-9][0-9]*\).*/\1n\2\3/
-t valid_regex_parsing
+t valid_s_or_addr_parsing
 b fail
 
 : addr_regex
@@ -214,7 +214,7 @@ x
 # remove delim, we don't need to keep it anymore
 s/.//
 x
-t valid_regex_parsing
+t valid_s_or_addr_parsing
 
 # POSIX specifies s valid opts are: g, <nth occurence>, w <file> and p
 # TODO handle all s options
@@ -233,7 +233,7 @@ s/^p/P/
 t s_cmd_add_prefix_opt
 
 x
-b valid_regex_parsing
+b valid_s_or_addr_parsing
 
 : s_cmd_add_prefix_opt
 # save to hold and remove processed option from pattern
@@ -246,7 +246,7 @@ s/\(.*\)\
 x
 t s_cmd_eat_options
 
-: valid_regex_parsing
+: valid_s_or_addr_parsing
 /^[rn][^rn]/{
   # single address, we need to check if another one follows
 
@@ -254,7 +254,7 @@ t s_cmd_eat_options
   s/^[[:blank:]]*,[[:blank:]]*\([^[:blank:]]\)/\1/
   x
   t append_comma
-  b regex_close_function
+  b s_or_addr_close_function
 
   : append_comma
   s/$/, /
@@ -262,7 +262,7 @@ t s_cmd_eat_options
   t address_check
 }
 
-: regex_close_function
+: s_or_addr_close_function
 # close C function call + add ";" if not an address
 s/$/)/
 /^s/s/$/;/
