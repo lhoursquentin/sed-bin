@@ -158,6 +158,9 @@ t regex_valid_delim_eaten
 s/^\(.\)\\\1/\1\
 \1/
 t regex_save_char
+s/^\(.\)\\n/\\n\
+\1/
+t regex_save_char
 s/^\(.\)\(\\\\\)/\2\2\
 \1/
 t regex_save_char

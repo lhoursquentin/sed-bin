@@ -77,6 +77,10 @@ verify 's/\([^ ]*\)/\1! \1/g' 'Hello World'
 verify 's/[^a]/foo/g' 'bar'
 verify 's/^a/foo/g' 'aaaa'
 
+# s with \n
+verify 'N; s/^foo\nbar/yo\nlo/g' 'foo
+bar'
+
 # s empty match check
 verify 's/[^ ]*/yo/g' 'Hello world'
 verify 's/[^ ]*/yo/g' 'Hello '

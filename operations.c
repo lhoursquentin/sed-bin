@@ -38,7 +38,7 @@ static int expand_replace(
           replace_expanded_index += eo - so;
         } else {
           replace_expanded[replace_expanded_index++] = replace_char;
-          found_backslash = 0;
+          found_backslash = false;
         }
         break;
       case '1':
@@ -63,17 +63,19 @@ static int expand_replace(
             eo
           );
           replace_expanded_index += eo - so;
-          found_backslash = 0;
+          found_backslash = false;
         } else {
           replace_expanded[replace_expanded_index++] = replace_char;
         }
         break;
       default:
-        replace_expanded[replace_expanded_index++] = replace_char;
         if (found_backslash) {
-          // ignore for now, at some point it might be nice to handle \x, \o, \n
-          // etc.
-          found_backslash = 0;
+          found_backslash = false;
+          if (replace_char == 'n') {
+            replace_expanded[replace_expanded_index++] = '\n';
+          }
+        } else {
+          replace_expanded[replace_expanded_index++] = replace_char;
         }
         break;
     }
