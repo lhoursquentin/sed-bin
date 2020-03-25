@@ -128,6 +128,16 @@ t regex_start_process
 # of the hold.
 /^.[^rn]/s/$/\
 /
+
+# check if this is an empty pattern, in which case we want to use the last one
+x
+/^\(.\)\1/{
+  s//\1/
+  x
+  s/$/status.last_pattern/
+  t regex_valid_delim_eaten
+}
+x
 s/$/"/
 # reset sub success value
 t regex_insert_c_start
@@ -152,8 +162,12 @@ x
   t regex_eat_next
 }
 
-s/^\(.\)\1/\1/
-t regex_valid_delim_eaten
+/^\(.\)\1/{
+  s//\1/
+  x
+  s/$/"/
+  t regex_valid_delim_eaten
+}
 
 # case of escaped delimiter s/bin\/bash/bin\/sh/, in that case we just remove
 # the backslash and process the char as any non delimiter one.
@@ -193,22 +207,20 @@ x
 t regex_eat_next
 
 : regex_valid_delim_eaten
-x
 
 # Found end of second regex addr, swap chars since we insert from the beginning
-s/^r\([nr]\)\(.*\)$/\1r\2"/
+s/^r\([nr]\)/\1r/
 t addr_regex_handle_end
 
 # Found end of single regex addr, a second address might follow
-s/^r\([^nr].*\)$/r\1"/
-t addr_regex_handle_end
+/^r[^nr]/b addr_regex_handle_end
 
 # Found second delim for the s cmd
-s/^s1\(.*\)$/s\1", 0/
+s/^s1\(.*\)$/s\1, 0/
 t s_cmd_handle_options
 
 # Found first delim for the s cmd
-s/^s0\(.*\)$/s1\1", "/
+s/^s0\(.*\)$/s1\1, "/
 x
 t regex_eat_next
 

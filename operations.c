@@ -169,6 +169,7 @@ void s(
   const char *const replace,
   const int opts)
 {
+  status->last_pattern = pattern;
   regex_t regex;
 
   // FIXME we should compile only once, both loops and each line processed can

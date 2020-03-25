@@ -17,6 +17,7 @@ typedef struct {
   bool sub_success;
   unsigned int line_nb;
   bool skip_read;
+  const char *last_pattern;
 } Status;
 
 #endif /* STATUS_H */

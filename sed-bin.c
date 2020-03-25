@@ -15,6 +15,7 @@ int main(int argc, char **argv) {
     .sub_success = false,
     .line_nb = 0,
     .skip_read = false,
+    .last_pattern = NULL,
   };
 
   while (true) {

@@ -22,6 +22,7 @@ bool addr_nn(Status *const status, const int start, const int end) {
 }
 
 bool addr_r(Status *const status, const char *const regex) {
+  status->last_pattern = regex;
   const char *const pattern_space = status->pattern_space;
   regex_t regex_obj;
 

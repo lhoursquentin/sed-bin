@@ -240,4 +240,12 @@ b\nuf\
 funk' 'Hello
 World'
 
+# empty pattern
+verify '/foo/s///' 'foo bar
+funk'
+verify '/foo/s///' 'foo bar
+funk'
+verify '/foo/{/funk/s//hey/}' 'foo funk'
+verify 's/foo/bar/; s//funk/' 'foo foo foo'
+
 end_tests
