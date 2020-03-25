@@ -6,6 +6,7 @@
 #include "status.h"
 
 #define S_OPT_G 0x01
+#define S_OPT_P 0x02
 
 void d(Status *status);
 operation_ret D(Status *status);

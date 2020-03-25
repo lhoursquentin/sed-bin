@@ -161,6 +161,13 @@ verify 's/\([^ ]*\)/\1! \1/g' 'Hello World'
 verify 's/[^a]/foo/g' 'bar'
 verify 's/^a/foo/g' 'aaaa'
 
+# p opt
+verify 's/foo/bar/p;d' 'padding foo padding'
+verify 's/foo/bar/pg;d' 'padding foo padding foo padding'
+verify 's/foo/bar/gp;d' 'padding foo padding foo padding'
+verify 's/^/hey/p;d' 'foo'
+verify 's/^//p;d' 'foo'
+
 # s with \n
 verify 'N; s/^foo\nbar/yo\nlo/g' 'foo
 bar'

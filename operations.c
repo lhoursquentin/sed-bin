@@ -89,7 +89,7 @@ static int substitution(
     char *pattern_space,
     const char *pattern,
     const char *replace,
-    bool first_sub
+    const bool first_sub_done
 ) {
   regmatch_t pmatch[MAX_MATCHES];
   if (regexec(
@@ -97,13 +97,11 @@ static int substitution(
         pattern_space,
         MAX_MATCHES,
         pmatch,
-        first_sub ? 0 : REG_NOTBOL
+        first_sub_done ? REG_NOTBOL : 0
   )) {
     regfree(regex);
-    return 0;
+    return -1;
   }
-
-  status->sub_success = true;
 
   const int pattern_space_len = strlen(pattern_space);
   const int so = pmatch[0].rm_so; // start offset
@@ -115,7 +113,7 @@ static int substitution(
 
   // empty match, s/^/foo/ for instance
   if (eo == 0) {
-    if (first_sub) {
+    if (!first_sub_done) {
       memmove(
         pattern_space + replace_expanded_len,
         pattern_space,
@@ -182,12 +180,13 @@ void s(
     assert(false);
   }
 
-  // TODO nth/p/w opts
+  // TODO nth/w opts
   const bool opt_g = opts & S_OPT_G;
+  const bool opt_p = opts & S_OPT_P;
 
   char *pattern_space = status->pattern_space;
   int pattern_offset = 0;
-  bool first_sub = true;
+  bool first_sub_done = false;
   do {
     pattern_offset = substitution(
       &regex,
@@ -195,14 +194,25 @@ void s(
       pattern_space,
       pattern,
       replace,
-      first_sub
+      first_sub_done
     );
+    if (pattern_offset == -1) {
+      break;
+    }
     // if opt_g is enabled then we want to avoid ^ to keep its meaning for the
     // next iterations
-    first_sub = false;
+    first_sub_done = true;
     pattern_space += pattern_offset;
   } while (opt_g && pattern_space[0] && pattern_offset);
+
   regfree(&regex);
+
+  if (first_sub_done) {
+    status->sub_success = true;
+    if (opt_p) {
+      puts(status->pattern_space);
+    }
+  }
 }
 
 void x(Status *status) {
