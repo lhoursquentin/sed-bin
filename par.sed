@@ -58,6 +58,8 @@ s/^[Nn]/if (&(\&status) == BREAK) break;\
 /
 t single_char_cmd
 
+s/^i[[:blank:]]*\\$//; t i_cmd
+
 # TODO missing cmds
 # aci
 # wr
@@ -365,6 +367,25 @@ s/.*\
 //
 t start
 s/^/b cleanup: /
+b fail
+
+: i_cmd
+N
+s/\\$//
+t i_cmd
+# remove first newline
+s/.//
+# "\n" -> '\n'
+s/\\n/\n/g
+# \<any char> -> <any char>
+s/\\\(.\)/\1/g
+# quotes and backslashes must be escaped for the C
+s/[\"]/\\&/g
+# '\n' -> "\n" for the C
+s/\n/\\n/g
+s/.*/puts("&");/
+n
+t start
 b fail
 
 n

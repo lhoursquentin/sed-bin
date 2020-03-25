@@ -148,7 +148,7 @@ Files generated.c and - are identical
 
 # Notes
 
-- Some commands are missing (currently a, c, i, w, r, y), and some features are
+- Some commands are missing (currently a, c, w, r, y), and some features are
   missing as well (empty label jumps, regex repetition, negative match,
   range addresses). Supporting those is planned.
 

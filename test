@@ -225,4 +225,12 @@ single line'
 # the translator
 assert_true compile_translator -- 'translating the translator with a compiled translator yields the original translation'
 
+verify 'i \
+f"oo  \
+b\jr\
+b\\az\
+b\nuf\
+funk' 'Hello
+World'
+
 end_tests
