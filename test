@@ -237,7 +237,8 @@ f"oo  \
 b\jr\
 b\\az\
 b\nuf\
-funk' 'Hello
+funk
+s/Hello/Bye/' 'Hello
 World'
 
 # empty pattern

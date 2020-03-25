@@ -397,10 +397,8 @@ s/[\"]/\\&/g
 s/\n/\\n/g
 s/.*/puts("&");/
 n
-t start
-b fail
+b start
 
-n
 : fail
 s/^/FAIL - /
 q
