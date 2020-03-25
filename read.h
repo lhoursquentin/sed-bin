@@ -5,5 +5,5 @@
 
 #include "status.h"
 
-bool read_pattern(Status *status, char *buf, int size);
+bool read_pattern(Status *const status, char *const buf, const int size);
 #endif /* READ_H */

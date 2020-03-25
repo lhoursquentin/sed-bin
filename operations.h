@@ -8,24 +8,24 @@
 #define S_OPT_G 0x01
 #define S_OPT_P 0x02
 
-void d(Status *status);
-operation_ret D(Status *status);
-void equal(Status *status);
-void g(Status *status);
-void G(Status *status);
-void h(Status *status);
-void H(Status *status);
-operation_ret n(Status *status);
-operation_ret N(Status *status);
-void p(const Status *status);
-void P(const Status *status);
-void q(const Status *status);
+void d(Status *const status);
+operation_ret D(Status *const status);
+void equal(const Status *const status);
+void g(Status *const status);
+void G(Status *const status);
+void h(Status *const status);
+void H(Status *const status);
+operation_ret n(Status *const status);
+operation_ret N(Status *const status);
+void p(const Status *const status);
+void P(const Status *const status);
+void q(const Status *const status);
 void s(
-  Status *status,
-  const char* pattern,
-  const char* replace,
+  Status *const status,
+  const char *const pattern,
+  const char *const replace,
   const int opts
 );
-void x(Status *status);
+void x(Status *const status);
 
 #endif /* OPERATIONS_H */

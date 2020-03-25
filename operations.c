@@ -9,9 +9,9 @@
 #include "read.h"
 
 static int expand_replace(
-    char *replace_expanded,
-    const char *pattern_space,
-    const char *replace,
+    char *const replace_expanded,
+    const char *const pattern_space,
+    const char *const replace,
     const regmatch_t *pmatch) {
   const int replace_len = strlen(replace);
   bool found_backslash = false;
@@ -84,11 +84,9 @@ static int expand_replace(
 }
 
 static int substitution(
-    regex_t *regex,
-    Status *status,
+    regex_t *const regex,
     char *pattern_space,
-    const char *pattern,
-    const char *replace,
+    const char *const replace,
     const bool first_sub_done
 ) {
   regmatch_t pmatch[MAX_MATCHES];
@@ -166,9 +164,9 @@ static int substitution(
 }
 
 void s(
-  Status *status,
-  const char *pattern,
-  const char *replace,
+  Status *const status,
+  const char *const pattern,
+  const char *const replace,
   const int opts)
 {
   regex_t regex;
@@ -190,9 +188,7 @@ void s(
   do {
     pattern_offset = substitution(
       &regex,
-      status,
       pattern_space,
-      pattern,
       replace,
       first_sub_done
     );
@@ -215,20 +211,20 @@ void s(
   }
 }
 
-void x(Status *status) {
-  char *pattern_space = status->pattern_space;
-  char *hold_space = status->hold_space;
+void x(Status *const status) {
+  char *const pattern_space = status->pattern_space;
+  char *const hold_space = status->hold_space;
   status->pattern_space = hold_space;
   status->hold_space = pattern_space;
 }
 
-void d(Status *status) {
+void d(Status *const status) {
   status->pattern_space[0] = '\0';
 }
 
-operation_ret D(Status *status) {
-  char *pattern_space = status->pattern_space;
-  const char *newline_location = strchr(pattern_space, '\n');
+operation_ret D(Status *const status) {
+  char *const pattern_space = status->pattern_space;
+  const char *const newline_location = strchr(pattern_space, '\n');
   if (newline_location == NULL) {
     pattern_space[0] = '\0';
     return CONTINUE;
@@ -243,17 +239,14 @@ operation_ret D(Status *status) {
   return CONTINUE;
 }
 
-void equal(Status *status) {
-  unsigned int line_nb = status->line_nb;
-  printf(
-      "%d\n",
-      line_nb
-  );
+void equal(const Status *const status) {
+  const unsigned int line_nb = status->line_nb;
+  printf("%d\n", line_nb);
 }
 
-void g(Status *status) {
-  char *pattern_space = status->pattern_space;
-  const char *hold_space = status->hold_space;
+void g(Status *const status) {
+  char *const pattern_space = status->pattern_space;
+  const char *const hold_space = status->hold_space;
   memcpy(
     pattern_space,
     hold_space,
@@ -262,8 +255,8 @@ void g(Status *status) {
 }
 
 void G(Status *status) {
-  char *pattern_space = status->pattern_space;
-  const char *hold_space = status->hold_space;
+  char *const pattern_space = status->pattern_space;
+  const char *const hold_space = status->hold_space;
   const int pattern_space_len = strlen(pattern_space);
   memcpy(
     pattern_space + pattern_space_len + 1, // we'll place the \n in between
@@ -274,8 +267,8 @@ void G(Status *status) {
 }
 
 void h(Status *status) {
-  const char *pattern_space = status->pattern_space;
-  char *hold_space = status->hold_space;
+  const char *const pattern_space = status->pattern_space;
+  char *const hold_space = status->hold_space;
   memcpy(
     hold_space,
     pattern_space,
@@ -284,8 +277,8 @@ void h(Status *status) {
 }
 
 void H(Status *status) {
-  const char *pattern_space = status->pattern_space;
-  char *hold_space = status->hold_space;
+  const char *const pattern_space = status->pattern_space;
+  char *const hold_space = status->hold_space;
   const int hold_space_len = strlen(hold_space);
   memcpy(
     hold_space + hold_space_len + 1, // we'll place the \n in between
@@ -295,7 +288,7 @@ void H(Status *status) {
   hold_space[hold_space_len] = '\n';
 }
 
-operation_ret n(Status *status) {
+operation_ret n(Status *const status) {
   puts(status->pattern_space);
   if (!read_pattern(status, status->pattern_space, PATTERN_SIZE)) {
     return BREAK;
@@ -303,8 +296,8 @@ operation_ret n(Status *status) {
   return 0;
 }
 
-operation_ret N(Status *status) {
-  char *pattern_space = status->pattern_space;
+operation_ret N(Status *const status) {
+  char *const pattern_space = status->pattern_space;
   const int pattern_space_len = strlen(pattern_space);
   if (!read_pattern(
         status,
@@ -318,13 +311,13 @@ operation_ret N(Status *status) {
   return 0;
 }
 
-void p(const Status *status) {
-  const char *pattern_space = status->pattern_space;
+void p(const Status *const status) {
+  const char *const pattern_space = status->pattern_space;
   puts(pattern_space);
 }
 
-void P(const Status *status) {
-  const char *pattern_space = status->pattern_space;
+void P(const Status *const status) {
+  const char *const pattern_space = status->pattern_space;
   printf(
     "%.*s\n",
     strchr(pattern_space, '\n') - pattern_space,
@@ -332,7 +325,7 @@ void P(const Status *status) {
   );
 }
 
-void q(const Status *status) {
+void q(const Status *const status) {
   p(status);
   exit(0);
 }
