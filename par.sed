@@ -284,13 +284,22 @@ t s_cmd_eat_options
 s/$/)/
 /^s/s/$/;/
 x
+# negative address
+/^[[:blank:]]*!/{
+  s///
+  x
+  # invert result with xor, unfortunately C and sed negation are on the opposite
+  # side of the operand, so we'll do with that for now.
+  s/$/ ^ true/
+  x
+}
 # push remaining current line on hold
 H
 # clean hold
 # 1st line is hold unrelated to the current processing (except for the leading
 # command name)
-# 2rd line is the C code that we need to print, we'll swap it last
-# 3rth line is the rest of the line on which the s cmd was
+# 2nd line is the C code that we need to print, we'll swap it last
+# 3rd line is the rest of the line on which the s cmd was
 g
 s/^\(.*\)\
 \(.*\)\

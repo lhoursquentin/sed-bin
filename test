@@ -249,4 +249,12 @@ funk'
 verify '/foo/{/funk/s//hey/}' 'foo funk'
 verify 's/foo/bar/; s//funk/' 'foo foo foo'
 
+verify '/foo/!s/f/z/' 'foo
+bar
+foo'
+verify '/foo/!s/f/z/' 'foo bar foo'
+verify '1!s/f/z/' 'foo
+foo'
+verify '1!s/f/z/' 'foo bar'
+
 end_tests
