@@ -152,8 +152,8 @@ Files generated.c and - are identical
 # Notes
 
 - Some commands are missing (currently a, c, w, r, y), and some features are
-  missing as well (empty label jumps, regex repetition, negative match,
-  range addresses). Supporting those is planned.
+  missing as well (empty label jumps, range addresses, 0 and $ line addresses).
+  Supporting those is planned.
 
 - The translator does not handle invalid sed scripts, it will just generate
   invalid C code which will probably fail to compile, make sure you can run your
