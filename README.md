@@ -12,8 +12,10 @@ core and build utils (sed, libc, C compiler, shell, make).
 *Note: this project is currently tested with the GNU libc (2.30), GNU sed (4.5)
 and GCC (9.2.1)*
 
-Say you want to compile the following sed script called `binary-add.sed`:
+Say you want to compile the following sed script called `binary-add.sed` (see
+the `samples` directory):
 ```sed
+s/[[:blank:]]//g
 h
 : start
 s/[01]+/+/g
@@ -25,6 +27,7 @@ x
 s/[01]*\([01]\)+/\1+/g
 s/[01]*\([01]\)$/\1/g
 
+t reduce
 : reduce
 s/0+\([01]\)/\1/; t reduce
 s/\([01]\)+0/\1/; t reduce
