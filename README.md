@@ -59,7 +59,7 @@ sh$ echo 1+1+10+101+1 | sed -f binary-add.sed
 1
 ```
 
-Now let's tranlate it to C, pass the script to the translator named `par.sed`
+Now let's translate it to C, pass the script to the translator named `par.sed`
 and write the output to a file named `generated.c`:
 
 ```sh
@@ -152,7 +152,7 @@ Files generated.c and - are identical
 # Notes
 
 - Some commands are missing (currently a, c, w, r, y), and some features are
-  missing as well (empty label jumps, range addresses, 0 and $ line addresses).
+  missing as well (empty label jumps, 0 and $ line addresses).
   Supporting those is planned.
 
 - The translator does not handle invalid sed scripts, it will just generate

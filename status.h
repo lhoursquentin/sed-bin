@@ -3,6 +3,7 @@
 
 #define PATTERN_SIZE 1024
 #define MAX_MATCHES 9
+#define MAX_ACTIVE_RANGES 100
 
 typedef enum {
   CONTINUE,
@@ -18,6 +19,8 @@ typedef struct {
   unsigned int line_nb;
   bool skip_read;
   const char *last_pattern;
+  int *const range_ids;
+  int *const suppressed_range_ids;
 } Status;
 
 #endif /* STATUS_H */

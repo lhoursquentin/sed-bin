@@ -257,4 +257,72 @@ verify '1!s/f/z/' 'foo
 foo'
 verify '1!s/f/z/' 'foo bar'
 
+# ranges
+verify '1,3s/^/x/' 'foo
+bar
+funk
+fax'
+verify '2,3s/^/x/' 'foo
+bar
+funk
+fax'
+verify '2,2s/^/x/' 'foo
+bar
+funk
+fax'
+verify '2,10s/^/x/' 'foo
+bar
+funk
+fax'
+verify '2,1s/^/x/' 'foo
+bar
+funk
+fax'
+
+verify '1,/bar/s/^/x/' 'foo
+bar
+funk
+fax'
+
+verify '/foo/,/funk/s/^/x/' 'foo
+bar
+funk
+fax'
+
+verify '/foo/,/funk/s/^/x/; 1n' 'foo
+bar
+funk
+fax'
+
+verify '/foo/,/bar/s/^/x/' 'foo
+bar
+funk
+fax'
+
+verify '/foo/,/bar/s/^/x/; 1n' 'foo
+bar
+funk
+fax'
+
+verify '/foo/,/non existing/s/^/x/' 'foo
+bar
+funk
+fax'
+
+verify '/foo/,3s/^/x/' 'foo
+bar
+funk
+fax'
+
+verify '/foo/,3s/^/x/; 1n;' 'foo
+bar
+funk
+fax'
+
+# Busybox v1.30.1 fails this one
+verify '2!{1,2=}' 'foo
+bar
+funk
+fax'
+
 end_tests

@@ -16,6 +16,8 @@ int main(int argc, char **argv) {
     .line_nb = 0,
     .skip_read = false,
     .last_pattern = NULL,
+    .range_ids = (int [MAX_ACTIVE_RANGES]){},
+    .suppressed_range_ids = (int [MAX_ACTIVE_RANGES]){},
   };
 
   while (true) {

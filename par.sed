@@ -264,19 +264,27 @@ x
 t s_cmd_eat_options
 
 : valid_s_or_addr_parsing
-/^[rn][^rn]/{
-  # single address, we need to check if another one follows
+/^[rn]/{
+  # range, we'll append the LINE macro which will act as an unique id (this is
+  # "better" than COUNTER (since LINE is standardized) as long as we can
+  # guarantee that we'll never generate two range calls on the same line, that's
+  # why using the "=" command is not an option)
+  /^.[rn]/{
+    s/$/, __LINE__/
+  }
+  /^.[rn]/!{
+    # single address, we need to check if another one follows
+    x
+    s/^[[:blank:]]*,[[:blank:]]*\([^[:blank:]]\)/\1/
+    x
+    t append_comma
+    b s_or_addr_close_function
 
-  x
-  s/^[[:blank:]]*,[[:blank:]]*\([^[:blank:]]\)/\1/
-  x
-  t append_comma
-  b s_or_addr_close_function
-
-  : append_comma
-  s/$/, /
-  x
-  t address_check
+    : append_comma
+    s/$/, /
+    x
+    t address_check
+  }
 }
 
 : s_or_addr_close_function
