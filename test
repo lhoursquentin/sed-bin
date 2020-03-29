@@ -289,6 +289,21 @@ bar
 funk
 fax'
 
+verify '\,foo,,/funk/s,^,x,' 'foo
+bar
+funk
+fax'
+
+verify '/foo/,\,funk,s,^,x,' 'foo
+bar
+funk
+fax'
+
+verify '\,foo,,\,funk,s,^,x,' 'foo
+bar
+funk
+fax'
+
 verify '/foo/,/funk/s/^/x/; 1n' 'foo
 bar
 funk
@@ -324,5 +339,19 @@ verify '2!{1,2=}' 'foo
 bar
 funk
 fax'
+
+verify 'a \
+funk\
+punk
+s/^/x/
+a \
+yo\
+yeah
+s/^/y/
+n
+s/^/z/' 'foo
+bar
+baz
+funk'
 
 end_tests

@@ -219,6 +219,10 @@ void x(Status *const status) {
   status->hold_space = pattern_space;
 }
 
+void a(Status *const status, const char *const output) {
+  status->pending_output[status->pending_output_counter++] = output;
+}
+
 void d(Status *const status) {
   status->pattern_space[0] = '\0';
 }
@@ -287,6 +291,10 @@ void H(Status *status) {
     strlen(pattern_space) + 1 // include \0
   );
   hold_space[hold_space_len] = '\n';
+}
+
+void i(const char *const output) {
+  puts(output);
 }
 
 operation_ret n(Status *const status) {

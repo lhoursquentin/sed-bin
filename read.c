@@ -5,6 +5,11 @@
 #include "status.h"
 
 bool read_pattern(Status *const status, char *const buf, const int size) {
+  for (int i = 0; i < status->pending_output_counter; ++i) {
+    puts(status->pending_output[i]);
+  }
+  status->pending_output_counter = 0;
+
   if (!fgets(buf, size, stdin)) {
     return 0;
   }

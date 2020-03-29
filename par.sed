@@ -58,7 +58,7 @@ s/^[Nn]/if (&(\&status) == BREAK) break;\
 /
 t single_char_cmd
 
-s/^i[[:blank:]]*\\$//; t i_cmd
+s/^\([ai]\)[[:blank:]]*\\$/\1/; t ai_cmds
 
 # TODO missing cmds
 # aci
@@ -398,12 +398,12 @@ t start
 s/^/b cleanup: /
 b fail
 
-: i_cmd
+: ai_cmds
 N
 s/\\$//
-t i_cmd
+t ai_cmds
 # remove first newline
-s/.//
+s/\n//
 # "\n" -> '\n'
 s/\\n/\n/g
 # \<any char> -> <any char>
@@ -412,7 +412,8 @@ s/\\\(.\)/\1/g
 s/[\"]/\\&/g
 # '\n' -> "\n" for the C
 s/\n/\\n/g
-s/.*/puts("&");/
+s/^i\(.*\)/i("\1");/
+s/^a\(.*\)/a(\&status, "\1");/
 n
 b start
 

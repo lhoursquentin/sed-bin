@@ -8,6 +8,7 @@
 #define S_OPT_G 0x01
 #define S_OPT_P 0x02
 
+void a(Status *const status, const char *const output);
 void d(Status *const status);
 operation_ret D(Status *const status);
 void equal(const Status *const status);
@@ -15,6 +16,7 @@ void g(Status *const status);
 void G(Status *const status);
 void h(Status *const status);
 void H(Status *const status);
+void i(const char *const output);
 operation_ret n(Status *const status);
 operation_ret N(Status *const status);
 void p(const Status *const status);
