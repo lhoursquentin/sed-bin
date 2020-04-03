@@ -38,9 +38,9 @@ t start
 
 : cmd_check
 s|^#|//|; t comment
-s/^b[[:blank:]]*//; t b_cmd
-s/^t[[:blank:]]*//; t t_cmd
-s/^:[[:blank:]]*//; t label_cmd
+s/^b[[:blank:]]*\([^;}][^[:blank:];}]*\)/goto \1;\n/; t label_cmds
+s/^t[[:blank:]]*\([^;}][^[:blank:];}]*\)/if (status.sub_success) { status.sub_success = false; goto \1; }\n/; t label_cmds
+s/^:[[:blank:]]*\([^;}][^[:blank:];}]*\)/\1:\n/; t label_cmds
 s/^s//; t s_cmd
 s/^[hHgGlpPqx]/&(\&status);\
 /
@@ -347,55 +347,12 @@ x
 t start
 b fail
 
-: t_cmd
-
-# eat what we will process right now, what remains is the future current line
-s/^[^[:blank:];}][^[:blank:];}]*/if (status.sub_success) { status.sub_success = false; goto &; }\
-/
-t valid_t_parsing
-s/^/t command parsing: /
-b fail
-
-: valid_t_parsing
+: label_cmds
 P
 s/.*\
 //
 t start
-s/^/t cleanup: /
-b fail
-
-: label_cmd
-
-# eat what we will process right now, what remains is the future current line
-s/^[^[:blank:];}][^[:blank:];}]*/&:\
-/
-t valid_label_parsing
-s/^/label command parsing: /
-b fail
-
-: valid_label_parsing
-P
-s/.*\
-//
-t start
-s/^/label cleanup: /
-b fail
-
-: b_cmd
-
-# eat what we will process right now, what remains is the future current line
-s/^[^[:blank:];}][^[:blank:];}]*/goto &;\
-/
-t valid_b_parsing
-s/^/b command parsing: /
-b fail
-
-: valid_b_parsing
-P
-s/.*\
-//
-t start
-s/^/b cleanup: /
+s/^/label cmds cleanup: /
 b fail
 
 : ai_cmds

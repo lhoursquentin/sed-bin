@@ -81,7 +81,7 @@ A binary named `sed-bin` has been generated, it should have the exact same
 behavior as the sed script:
 
 ```sh
-$ echo 1+1+10+101+1 | ./sed-bin
+sh$ echo 1+1+10+101+1 | ./sed-bin
 0
 1
 0
@@ -103,7 +103,7 @@ bar
 
 # Why
 
-Not much use practical use to this, here are some thoughts:
+Not much practical use to this, here are some thoughts:
 
 - Debugging a sed script is hard, one possible way is to run `sed` in gdb,
   but this assumes some familiarity with the implementation. Here the generated
