@@ -354,4 +354,41 @@ bar
 baz
 funk'
 
+verify '$s/^/last line: /' 'foo
+bar
+baz'
+
+verify '${s/^/last line: /; p}' 'foo
+bar
+baz'
+
+verify '$,1s/^/last line: /' 'foo
+bar
+baz'
+
+verify '2,$s/^/not first: /' 'foo
+bar
+baz
+funk'
+
+verify '/bar/,$s/^/after bar: /' 'foo
+bar
+baz
+funk'
+
+verify '/bar/,${s/^/after bar: /}' 'foo
+bar
+baz
+funk'
+
+verify '$,/funk/s/^/between last line and funk: /' 'foo
+bar
+baz
+funk'
+
+verify '$,/non-existing/s/^/between last line and some non matching regex: /' 'foo
+bar
+baz
+funk'
+
 end_tests

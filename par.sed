@@ -69,6 +69,7 @@ s/^\([ai]\)[[:blank:]]*\\$/\1/; t ai_cmds
 s|^/|&|; t addr_regex
 s|^\\\(.\)|\1|; t addr_regex
 s/^[0-9]/&/; t addr_number
+s/^\$//; t addr_last_line
 s/^./invalid command: &/
 t fail
 s/^/Missing command/
@@ -84,6 +85,30 @@ s/.*\
 //
 t start
 s/^/single char cmd cleanup: /
+b fail
+
+: addr_last_line
+x
+# work on the hold, if second address, do not add a newline (we've already built
+# the start of the C code on a new line)
+/^[^rn]/s/$/\
+/
+x
+# add address followed by a newline, the pattern should never have more than one
+# newline
+s/^/status.last_line_nb\n/
+# save address to hold and strip it from pattern, only leaving rest of the line
+H
+s/^.*\n//
+x
+# back to hold
+# remove H call newline and the very last line which is the rest of the current
+# line.
+# include address type at the very top (n).
+s/^\([rn]*\)\(.*\)\
+\(.*\)\
+.*/\1n\2\3/
+t valid_s_or_addr_parsing
 b fail
 
 : addr_number

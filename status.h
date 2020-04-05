@@ -18,12 +18,14 @@ typedef struct {
   char *hold_space;
   bool sub_success;
   unsigned int line_nb;
+  unsigned int last_line_nb;
   bool skip_read;
   const char *last_pattern;
   int *const range_ids;
   int *const suppressed_range_ids;
   const char **const pending_output;
   int pending_output_counter;
+  char *const next_line;
 } Status;
 
 #endif /* STATUS_H */

@@ -1,3 +1,4 @@
+#include <limits.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,12 +15,14 @@ int main(int argc, char **argv) {
     .hold_space = (char[PATTERN_SIZE]){},
     .sub_success = false,
     .line_nb = 0,
+    .last_line_nb = INT_MAX, // TODO UINT_MAX after cleaning up signed usage
     .skip_read = false,
     .last_pattern = NULL,
     .range_ids = (int [MAX_ACTIVE_RANGES]){},
     .suppressed_range_ids = (int [MAX_ACTIVE_RANGES]){},
     .pending_output = (const char *[MAX_PENDING_OUTPUT]){},
     .pending_output_counter = 0,
+    .next_line = (char[PATTERN_SIZE]){},
   };
 
   while (true) {

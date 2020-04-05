@@ -152,7 +152,7 @@ Files generated.c and - are identical
 # Notes
 
 - Some commands are missing (currently c, l, w, r, y), and some features are
-  missing as well (empty label jumps, "$" line address, "#n" marker).
+  missing as well (empty label jumps, "#n" marker).
   Supporting those is planned.
 
 - The translator does not handle invalid sed scripts, it will just generate
