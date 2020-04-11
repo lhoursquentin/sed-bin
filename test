@@ -93,6 +93,12 @@ generated_file=generated.c
 trap 'rm -f "$bin_output" "$expected_output"' EXIT
 expected_output="$(mktemp)"
 bin_output="$(mktemp)"
+# toybox, busybox, bsd sed and gnu sed are the most common targets
+sed_implementation='sed' # requiring an IFS split rules out default zsh
+# --posix is usually for the gnu version
+if "$sed_implementation" --posix '' /dev/null 2> /dev/null; then
+  sed_implementation="$sed_implementation --posix"
+fi
 
 compile_translator() {
   # Tranlate the translator with itself
@@ -107,7 +113,7 @@ compile_translator() {
 equal_output() {
   echo --------------------------
 
-  printf '%s\n' "$input" | sed "$sed_code" > "$expected_output" &&
+  printf '%s\n' "$input" | $sed_implementation "$sed_code" > "$expected_output" &&
   printf '%s\n' "$sed_code" | "$translator" > "$generated_file" &&
   make -s &&
   printf '%s\n' "$input" | "$bin" > "$bin_output" &&
@@ -335,7 +341,7 @@ funk
 fax'
 
 # Busybox v1.30.1 fails this one
-verify '2!{1,2=}' 'foo
+verify '2!{1,2s/^/> /}' 'foo
 bar
 funk
 fax'

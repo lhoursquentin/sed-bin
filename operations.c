@@ -313,7 +313,6 @@ operation_ret N(Status *const status) {
         pattern_space + pattern_space_len + 1,
         PATTERN_SIZE - pattern_space_len - 1)
   ) {
-    puts(status->pattern_space);
     return BREAK;
   }
   pattern_space[pattern_space_len] = '\n';
