@@ -151,9 +151,17 @@ Files generated.c and - are identical
 
 # Notes
 
-- Some commands are missing (currently c, l, w, r, y), and some features are
-  missing as well (empty label jumps, "#n" marker).
-  Supporting those is planned.
+- Missing commands (supporting those is planned):
+  - l
+  - r
+  - w
+  - y
+
+- Missing/incomplete features (supporting those is planned):
+  - empty label jumps
+  - #n marker
+  - c command correct behavior with 2 addresses
+  - s command nth and w options
 
 - The translator does not handle invalid sed scripts, it will just generate
   invalid C code which will probably fail to compile, make sure you can run your
@@ -164,7 +172,7 @@ Files generated.c and - are identical
   option. Also check out the [POSIX specification](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/sed.html).
 
 - It is assumed no options are passed to `sed` (`-n` is a common option for
-  instance), supporting those is not planned.
+  instance), supporting those is not planned for the moment.
 
 - There are some bugs, the C code is very rough around the edges (by that I mean
   dirty and unsafe, for instance allocating everything on the stack without

@@ -223,6 +223,12 @@ void a(Status *const status, const char *const output) {
   status->pending_output[status->pending_output_counter++] = output;
 }
 
+void c(Status *const status, const char *const output) {
+  char *const pattern_space = status->pattern_space;
+  pattern_space[0] = '\0';
+  puts(output);
+}
+
 void d(Status *const status) {
   status->pattern_space[0] = '\0';
 }

@@ -397,4 +397,12 @@ bar
 baz
 funk'
 
+verify 'c \
+punk\
+dunk
+s/^/x/' 'foo
+bar
+baz
+funk'
+
 end_tests

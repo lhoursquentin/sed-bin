@@ -9,6 +9,7 @@
 #define S_OPT_P 0x02
 
 void a(Status *const status, const char *const output);
+void c(Status *const status, const char *const output);
 void d(Status *const status);
 operation_ret D(Status *const status);
 void equal(const Status *const status);

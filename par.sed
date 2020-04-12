@@ -58,7 +58,7 @@ s/^[Nn]/if (&(\&status) == BREAK) break;\
 /
 t single_char_cmd
 
-s/^\([ai]\)[[:blank:]]*\\$/\1/; t ai_cmds
+s/^\([aci]\)[[:blank:]]*\\$/\1/; t aci_cmds
 
 # TODO missing cmds
 # aci
@@ -380,10 +380,10 @@ t start
 s/^/label cmds cleanup: /
 b fail
 
-: ai_cmds
+: aci_cmds
 N
 s/\\$//
-t ai_cmds
+t aci_cmds
 # remove first newline
 s/\n//
 # "\n" -> '\n'
@@ -396,6 +396,7 @@ s/[\"]/\\&/g
 s/\n/\\n/g
 s/^i\(.*\)/i("\1");/
 s/^a\(.*\)/a(\&status, "\1");/
+s/^c\(.*\)/{ c(\&status, "\1"); continue; }/
 n
 b start
 
