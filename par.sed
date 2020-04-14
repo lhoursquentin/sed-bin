@@ -65,9 +65,7 @@ t single_char_cmd
 s/^\([aci]\)[[:blank:]]*\\$/\1/; t aci_cmds
 
 # TODO missing cmds
-# aci
-# wr
-# y
+# w, r, l
 
 : address_check
 s|^/|&|; t addr_regex
@@ -336,22 +334,19 @@ t s_cmd_eat_options
   # why using the "=" command is not an option)
   /^.[rn]/{
     s/$/, __LINE__/
-    # TODO jump to next label here to avoid having the regex check the block
-    # below
+    t s_or_addr_close_function
   }
-  /^.[rn]/!{
-    # single address, we need to check if another one follows
-    x
-    s/^[[:blank:]]*,[[:blank:]]*\([^[:blank:]]\)/\1/
-    x
-    t append_comma
-    b s_or_addr_close_function
+  # single address, we need to check if another one follows
+  x
+  s/^[[:blank:]]*,[[:blank:]]*\([^[:blank:]]\)/\1/
+  x
+  t append_comma
+  b s_or_addr_close_function
 
-    : append_comma
-    s/$/, /
-    x
-    t address_check
-  }
+  : append_comma
+  s/$/, /
+  x
+  t address_check
 }
 
 : s_or_addr_close_function

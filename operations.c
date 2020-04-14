@@ -162,61 +162,6 @@ static int substitution(
   return eo;
 }
 
-void s(
-  Status *const status,
-  Regex *const regex,
-  const char *const replace,
-  const int opts)
-{
-  status->last_regex = regex;
-  regex_t *const regex_obj = &regex->obj;
-
-  if (!regex->compiled) {
-    if (regcomp(regex_obj, regex->str, 0)) {
-      assert(false);
-    } else {
-      regex->compiled = true;
-    }
-  }
-
-  // TODO nth/w opts
-  const bool opt_g = opts & S_OPT_G;
-  const bool opt_p = opts & S_OPT_P;
-
-  char *pattern_space = status->pattern_space;
-  int pattern_offset = 0;
-  bool first_sub_done = false;
-  do {
-    pattern_offset = substitution(
-      regex_obj,
-      pattern_space,
-      replace,
-      first_sub_done
-    );
-    if (pattern_offset == -1) {
-      break;
-    }
-    // if opt_g is enabled then we want to avoid ^ to keep its meaning for the
-    // next iterations
-    first_sub_done = true;
-    pattern_space += pattern_offset;
-  } while (opt_g && pattern_space[0] && pattern_offset);
-
-  if (first_sub_done) {
-    status->sub_success = true;
-    if (opt_p) {
-      puts(status->pattern_space);
-    }
-  }
-}
-
-void x(Status *const status) {
-  char *const pattern_space = status->pattern_space;
-  char *const hold_space = status->hold_space;
-  status->pattern_space = hold_space;
-  status->hold_space = pattern_space;
-}
-
 void a(Status *const status, const char *const output) {
   status->pending_output[status->pending_output_counter++] = output;
 }
@@ -340,6 +285,61 @@ void P(const Status *const status) {
 void q(const Status *const status) {
   p(status);
   exit(0);
+}
+
+void s(
+  Status *const status,
+  Regex *const regex,
+  const char *const replace,
+  const int opts)
+{
+  status->last_regex = regex;
+  regex_t *const regex_obj = &regex->obj;
+
+  if (!regex->compiled) {
+    if (regcomp(regex_obj, regex->str, 0)) {
+      assert(false);
+    } else {
+      regex->compiled = true;
+    }
+  }
+
+  // TODO nth/w opts
+  const bool opt_g = opts & S_OPT_G;
+  const bool opt_p = opts & S_OPT_P;
+
+  char *pattern_space = status->pattern_space;
+  int pattern_offset = 0;
+  bool first_sub_done = false;
+  do {
+    pattern_offset = substitution(
+      regex_obj,
+      pattern_space,
+      replace,
+      first_sub_done
+    );
+    if (pattern_offset == -1) {
+      break;
+    }
+    // if opt_g is enabled then we want to avoid ^ to keep its meaning for the
+    // next iterations
+    first_sub_done = true;
+    pattern_space += pattern_offset;
+  } while (opt_g && pattern_space[0] && pattern_offset);
+
+  if (first_sub_done) {
+    status->sub_success = true;
+    if (opt_p) {
+      puts(status->pattern_space);
+    }
+  }
+}
+
+void x(Status *const status) {
+  char *const pattern_space = status->pattern_space;
+  char *const hold_space = status->hold_space;
+  status->pattern_space = hold_space;
+  status->hold_space = pattern_space;
 }
 
 void y(Status *const status, const char *const set1, const char *const set2) {
