@@ -30,5 +30,6 @@ void s(
   const int opts
 );
 void x(Status *const status);
+void y(Status *const status, const char *const set1, const char *const set2);
 
 #endif /* OPERATIONS_H */

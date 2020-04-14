@@ -341,3 +341,15 @@ void q(const Status *const status) {
   p(status);
   exit(0);
 }
+
+void y(Status *const status, const char *const set1, const char *const set2) {
+  char *const pattern_space = status->pattern_space;
+  // Not the most efficient, might refactor this if I move to a C++ translation
+  for (int pattern_index = 0; pattern_space[pattern_index]; ++pattern_index) {
+    for (int set_index = 0; set1[set_index] && set2[set_index]; ++set_index) {
+      if (pattern_space[pattern_index] == set1[set_index]) {
+        pattern_space[pattern_index] = set2[set_index];
+      }
+    }
+  }
+}

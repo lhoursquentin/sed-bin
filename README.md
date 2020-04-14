@@ -155,7 +155,6 @@ Files generated.c and - are identical
   - l
   - r
   - w
-  - y
 
 - Missing/incomplete features (supporting those is planned):
   - empty label jumps

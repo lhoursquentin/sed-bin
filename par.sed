@@ -45,6 +45,7 @@ s/^t[[:blank:]]*\([^;}][^[:blank:];}]*\)/if (status.sub_success) { status.sub_su
 # semi-colon needed since declarations cannot directly follow a label in C
 s/^:[[:blank:]]*\([^;}][^[:blank:];}]*\)/\1:;\n/; t label_cmds
 s/^s//; t s_cmd
+s/^y//; t y_cmd
 s/^[hHgGlpPqx]/&(\&status);\
 /
 t single_char_cmd
@@ -156,6 +157,11 @@ s/^/s0/
 
 t regex_start_process
 
+: y_cmd
+x
+s/^/y0/
+t regex_start_process
+
 : regex_start_process
 # insert start of s C code at the bottom of the hold (we omit the name of the
 # function since we don't know here if we are currently processing the s command
@@ -252,6 +258,7 @@ t s_cmd_handle_options
 # case of regex closing a range: swap chars since we insert from the beginning
 s/^r\([rn]\)/\1r/
 
+/^y/b skip_regex_creation
 # At this point if we do not have a string on the last line then that means
 # we're in the last_regex case, skip regex creation
 /"$/!b skip_regex_creation
@@ -276,9 +283,11 @@ x
 # get rid of regex declaration and saved current line
 s/\(.*\)\n.*\n.*/\1/
 : skip_regex_creation
-# Found first delim for the s cmd
-/^s0/{
-  s/^s0\(.*\)$/s1\1, "/
+s/y1/y/
+
+# Found first delim for the s/y cmd
+/^[sy]0/{
+  s/^\([sy]\)0\(.*\)$/\11\2, "/
   x
   t regex_eat_next
 }
@@ -348,7 +357,8 @@ t s_cmd_eat_options
 : s_or_addr_close_function
 # close C function call + add ";" if not an address
 s/$/)/
-/^s/s/$/;}/
+/^[sy]/s/$/;/
+/^s/s/$/ }/
 x
 # negative address
 /^[[:blank:]]*!/{

@@ -405,4 +405,9 @@ bar
 baz
 funk'
 
+verify 'y/abc/def/' 'abbac'
+verify 'y abc def ' 'abbac'
+verify 'ya\abcadefa' 'abbac'
+verify 'h; y/abc/def/; h' 'abbac'
+
 end_tests
