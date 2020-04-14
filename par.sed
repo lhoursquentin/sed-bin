@@ -2,11 +2,13 @@
 
 # The first line of the hold space is used for temporary storage in this script,
 # never use it to store data longer than a single command.
+# Second line will act as an id to create unique variable names, though this
+# line should be located from the bottom.
 
 1{
   x
   s/^/\
-/
+reg_x/
   x
 }
 
@@ -40,7 +42,8 @@ t start
 s|^#|//|; t comment
 s/^b[[:blank:]]*\([^;}][^[:blank:];}]*\)/goto \1;\n/; t label_cmds
 s/^t[[:blank:]]*\([^;}][^[:blank:];}]*\)/if (status.sub_success) { status.sub_success = false; goto \1; }\n/; t label_cmds
-s/^:[[:blank:]]*\([^;}][^[:blank:];}]*\)/\1:\n/; t label_cmds
+# semi-colon needed since declarations cannot directly follow a label in C
+s/^:[[:blank:]]*\([^;}][^[:blank:];}]*\)/\1:;\n/; t label_cmds
 s/^s//; t s_cmd
 s/^[hHgGlpPqx]/&(\&status);\
 /
@@ -136,6 +139,15 @@ s/^/r/
 t regex_start_process
 
 : s_cmd
+# s cmd needs a scope since for the case:
+#   /foo/s/bar/baz/
+#   if addr("foo") static reg = ...; s(reg);
+# Here static ends up alone in the if, which is no good, so we add a scope:
+#   if addr("foo") { static reg = ...; s(reg); }
+# This issue cannot happen with addresses since they cannot be chained without
+# brackets: /foo//bar/p -> invalid but /foo/{/bar/p} -> valid and not an issue.
+i \
+{
 
 x
 # at the top of the hold, track the number of delimiters encountered:
@@ -151,15 +163,15 @@ t regex_start_process
 # If we are processing the second address in a range, we want to avoid adding a
 # newline since we have the beginning of the C code for this range at the bottom
 # of the hold.
-/^.[^rn]/s/$/\
-/
+/^.[^rn]/s/$/\n/
+s/$/\n/
 
 # check if this is an empty pattern, in which case we want to use the last one
 x
 /^\(.\)\1/{
   s//\1/
   x
-  s/$/status.last_pattern/
+  s/\n$/status.last_regex/
   t regex_valid_delim_eaten
 }
 x
@@ -233,25 +245,44 @@ t regex_eat_next
 
 : regex_valid_delim_eaten
 
-# Found end of second regex addr, swap chars since we insert from the beginning
-s/^r\([nr]\)/\1r/
-t addr_regex_handle_end
-
-# Found end of single regex addr, a second address might follow
-/^r[^nr]/b addr_regex_handle_end
-
 # Found second delim for the s cmd
 s/^s1\(.*\)$/s\1, 0/
 t s_cmd_handle_options
 
-# Found first delim for the s cmd
-s/^s0\(.*\)$/s1\1, "/
+# case of regex closing a range: swap chars since we insert from the beginning
+s/^r\([rn]\)/\1r/
+
+# At this point if we do not have a string on the last line then that means
+# we're in the last_regex case, skip regex creation
+/"$/!b skip_regex_creation
+s/\(.*\)\
+\(.*\)\
+\(.*\)\
+\(.*\)/\1\
+\2x\
+\3\&\2\
+static Regex \2 = {.compiled = false, .str = \4};/
+# save current line we are working on
+G
+# save everything to hold
+h
+# only keep regex declaration and print it
+s/.*\n\(.*\)\n.*/\1/p
+# restore everything
+g
+# cleanup line we were working on
+s/.*\n//
 x
-t regex_eat_next
+# get rid of regex declaration and saved current line
+s/\(.*\)\n.*\n.*/\1/
+: skip_regex_creation
+# Found first delim for the s cmd
+/^s0/{
+  s/^s0\(.*\)$/s1\1, "/
+  x
+  t regex_eat_next
+}
 
-b fail
-
-: addr_regex_handle_end
 x
 # remove delim, we don't need to keep it anymore
 s/.//
@@ -296,6 +327,8 @@ t s_cmd_eat_options
   # why using the "=" command is not an option)
   /^.[rn]/{
     s/$/, __LINE__/
+    # TODO jump to next label here to avoid having the regex check the block
+    # below
   }
   /^.[rn]/!{
     # single address, we need to check if another one follows
@@ -315,7 +348,7 @@ t s_cmd_eat_options
 : s_or_addr_close_function
 # close C function call + add ";" if not an address
 s/$/)/
-/^s/s/$/;/
+/^s/s/$/;}/
 x
 # negative address
 /^[[:blank:]]*!/{

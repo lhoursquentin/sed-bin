@@ -25,7 +25,7 @@ void P(const Status *const status);
 void q(const Status *const status);
 void s(
   Status *const status,
-  const char *const pattern,
+  Regex *const regex,
   const char *const replace,
   const int opts
 );

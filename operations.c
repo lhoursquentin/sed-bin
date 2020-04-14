@@ -97,7 +97,6 @@ static int substitution(
         pmatch,
         first_sub_done ? REG_NOTBOL : 0
   )) {
-    regfree(regex);
     return -1;
   }
 
@@ -165,18 +164,19 @@ static int substitution(
 
 void s(
   Status *const status,
-  const char *const pattern,
+  Regex *const regex,
   const char *const replace,
   const int opts)
 {
-  status->last_pattern = pattern;
-  regex_t regex;
+  status->last_regex = regex;
+  regex_t *const regex_obj = &regex->obj;
 
-  // FIXME we should compile only once, both loops and each line processed can
-  // lead to compiling the same regex many times
-  if (regcomp(&regex, pattern, 0)) {
-    regfree(&regex);
-    assert(false);
+  if (!regex->compiled) {
+    if (regcomp(regex_obj, regex->str, 0)) {
+      assert(false);
+    } else {
+      regex->compiled = true;
+    }
   }
 
   // TODO nth/w opts
@@ -188,7 +188,7 @@ void s(
   bool first_sub_done = false;
   do {
     pattern_offset = substitution(
-      &regex,
+      regex_obj,
       pattern_space,
       replace,
       first_sub_done
@@ -201,8 +201,6 @@ void s(
     first_sub_done = true;
     pattern_space += pattern_offset;
   } while (opt_g && pattern_space[0] && pattern_offset);
-
-  regfree(&regex);
 
   if (first_sub_done) {
     status->sub_success = true;

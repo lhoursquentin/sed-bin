@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
     .line_nb = 0,
     .last_line_nb = INT_MAX, // TODO UINT_MAX after cleaning up signed usage
     .skip_read = false,
-    .last_pattern = NULL,
+    .last_regex = NULL,
     .range_ids = (int [MAX_ACTIVE_RANGES]){},
     .suppressed_range_ids = (int [MAX_ACTIVE_RANGES]){},
     .pending_output = (const char *[MAX_PENDING_OUTPUT]){},

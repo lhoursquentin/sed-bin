@@ -14,6 +14,7 @@ and GCC (9.2.1)*
 
 Say you want to compile the following sed script called `binary-add.sed` (see
 the `samples` directory):
+
 ```sed
 s/[[:blank:]]//g
 h
@@ -112,9 +113,8 @@ Not much practical use to this, here are some thoughts:
 - One might find this useful for obfuscation or maybe to limit the scope of sed?
 - Better speed? Since the generated code is specific to a script, one might
   expect it to be much faster than using `sed`, since we can skip parsing,
-  walking the AST etc. Though with the current implementation a compiled script
-  is roughly 4 times slower than GNU sed, this is mostly due to having to
-  compile all regexes each time, instead of once, which I'm still working on.
+  walking the AST etc. I didn't do any serious measurements yet, but so far it
+  seems slightly faster than GNU sed, and much faster than busybox sed.
 
 # Translating the translator
 
@@ -122,7 +122,7 @@ The basic idea of this project is to translate **sed** code to **C** code, to
 compile it and have a resulting binary with the same behavior as the original
 script.
 
-Now since the translator from sed to C is written is sed, we should be able to
+Now since the translator from sed to C is written in sed, we should be able to
 translate the translator, compile it and then be able to use the compiled
 version to translate other sed scripts.
 

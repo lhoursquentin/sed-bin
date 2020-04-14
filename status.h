@@ -12,6 +12,15 @@ typedef enum {
 } operation_ret;
 
 #include <stdbool.h>
+#include <regex.h>
+
+typedef struct {
+  bool compiled;
+  union {
+    const char *str;
+    regex_t obj;
+  };
+} Regex;
 
 typedef struct {
   char *pattern_space;
@@ -20,7 +29,7 @@ typedef struct {
   unsigned int line_nb;
   unsigned int last_line_nb;
   bool skip_read;
-  const char *last_pattern;
+  Regex *last_regex;
   int *const range_ids;
   int *const suppressed_range_ids;
   const char **const pending_output;

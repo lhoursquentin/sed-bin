@@ -28,8 +28,8 @@
 
 bool addr_rr(
   Status *const status,
-  const char *const start,
-  const char *const end,
+  Regex *const start,
+  Regex *const end,
   const int id
 ) {
   int *const range_ids = status->range_ids;
@@ -61,7 +61,7 @@ bool addr_rr(
 
 bool addr_rn(
   Status *const status,
-  const char *const start,
+  Regex *const start,
   const int end,
   const int id
 ) {
@@ -98,7 +98,7 @@ bool addr_rn(
 bool addr_nr(
   Status *const status,
   const int start,
-  const char *const end,
+  Regex *const end,
   const int id
 ) {
   /*
@@ -177,23 +177,21 @@ bool addr_nn(
   return false;
 }
 
-bool addr_r(Status *const status, const char *const regex) {
-  status->last_pattern = regex;
+bool addr_r(Status *const status, Regex *const regex) {
+  status->last_regex = regex;
+  regex_t *const regex_obj = &regex->obj;
+
+  if (!regex->compiled) {
+    if (regcomp(regex_obj, regex->str, 0)) {
+      assert(false);
+    } else {
+      regex->compiled = true;
+    }
+  }
+
   const char *const pattern_space = status->pattern_space;
-  regex_t regex_obj;
 
-  if (regcomp(&regex_obj, regex, 0)) {
-    regfree(&regex_obj);
-    assert(false);
-  }
-
-  if (regexec(&regex_obj, pattern_space, 0, NULL, 0)) {
-    regfree(&regex_obj);
-    return false;
-  }
-
-  regfree(&regex_obj);
-  return true;
+  return !regexec(regex_obj, pattern_space, 0, NULL, 0);
 }
 
 bool addr_n(const Status *status, const int line_nb) {
