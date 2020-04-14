@@ -171,14 +171,17 @@ t regex_start_process
 s/$/\n/
 
 # check if this is an empty pattern, in which case we want to use the last one
-x
-/^\(.\)\1/{
-  s//\1/
+
+/^[rs]/{
   x
-  s/\n$/status.last_regex/
-  t regex_valid_delim_eaten
+  /^\(.\)\1/{
+    s//\1/
+    x
+    s/\n$/status.last_regex/
+    t regex_valid_delim_eaten
+  }
+  x
 }
-x
 s/$/"/
 # reset sub success value
 t regex_insert_c_start

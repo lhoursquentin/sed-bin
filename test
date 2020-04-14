@@ -409,5 +409,9 @@ verify 'y/abc/def/' 'abbac'
 verify 'y abc def ' 'abbac'
 verify 'ya\abcadefa' 'abbac'
 verify 'h; y/abc/def/; h' 'abbac'
+verify 'y/axb/d\ne/' 'HelloxWorld'
+verify 'N; y/a\nb/dxe/' 'Hello
+World'
+verify 'y///' 'foo'
 
 end_tests
