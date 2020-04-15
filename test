@@ -414,6 +414,8 @@ verify 'N; y/a\nb/dxe/' 'Hello
 World'
 verify 'y///' 'foo'
 
+verify 'l' 'foo \\ \ '"$(printf '\a\b\f\r\t\v')"' é '"$(printf '\001\020\300')"' bar'
+
 verify 'r non-existing-file
 s/^/x/' 'bar
 baz'

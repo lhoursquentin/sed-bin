@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <ctype.h>
 #include <regex.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -255,6 +256,60 @@ operation_ret n(Status *const status) {
     return BREAK;
   }
   return 0;
+}
+
+void l(const Status *const status) {
+  const char *const pattern_space = status->pattern_space;
+  for (int i = 0, fold_counter = 0; pattern_space[i]; ++i, ++fold_counter) {
+    const char c = pattern_space[i];
+    if (fold_counter > 80) {
+      puts("\\");
+      fold_counter = 0;
+    }
+    if (isprint(c)) {
+      if (c == '\\') { // needs to be doubled
+        putchar('\\');
+        fold_counter++;
+      }
+      putchar(c);
+    } else {
+      fold_counter++;
+      switch (c) {
+        case '\n':
+          // POSIX states:
+          // > [...] '\t', '\v' ) shall be written as the corresponding escape
+          // > sequence; the '\n' in that table is not applicable
+          //
+          // toybox and gnu sed still print newlines as "\n", I'll choose to
+          // stick to my understanding of POSIX there.
+          puts("$");
+          fold_counter = 0;
+        case '\a':
+          printf("\\a");
+          break;
+        case '\b':
+          printf("\\b");
+          break;
+        case '\f':
+          printf("\\f");
+          break;
+        case '\r':
+          printf("\\r");
+          break;
+        case '\t':
+          printf("\\t");
+          break;
+        case '\v':
+          printf("\\v");
+          break;
+        default:
+          fold_counter += 2; // 3 counting the beginning of the else branch
+          printf("\\%03hho", c);
+          break;
+      }
+    }
+  }
+  puts("$");
 }
 
 operation_ret N(Status *const status) {

@@ -18,6 +18,7 @@ void G(Status *const status);
 void h(Status *const status);
 void H(Status *const status);
 void i(const char *const output);
+void l(const Status *const status);
 operation_ret n(Status *const status);
 operation_ret N(Status *const status);
 void p(const Status *const status);

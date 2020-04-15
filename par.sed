@@ -65,8 +65,8 @@ t single_char_cmd
 
 s/^\([aci]\)[[:blank:]]*\\$/\1/; t aci_cmds
 
-# TODO missing cmds
-# w, l
+# TODO missing cmd
+# w
 
 : address_check
 s|^/|&|; t addr_regex

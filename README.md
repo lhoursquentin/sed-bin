@@ -151,8 +151,7 @@ Files generated.c and - are identical
 
 # Notes
 
-- Missing commands (supporting those is planned):
-  - l
+- Missing command (supporting it is planned):
   - w
 
 - Missing/incomplete features (supporting those is planned):
