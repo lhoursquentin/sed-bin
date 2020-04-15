@@ -153,7 +153,6 @@ Files generated.c and - are identical
 
 - Missing commands (supporting those is planned):
   - l
-  - r
   - w
 
 - Missing/incomplete features (supporting those is planned):

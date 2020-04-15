@@ -15,6 +15,14 @@ typedef enum {
 #include <regex.h>
 
 typedef struct {
+  bool is_filepath;
+  union {
+    const char *direct_output; // resulting from a cmd
+    const char *filepath; // resulting from r cmd
+  };
+} Pending_output;
+
+typedef struct {
   bool compiled;
   union {
     const char *str;
@@ -32,7 +40,7 @@ typedef struct {
   Regex *last_regex;
   int *const range_ids;
   int *const suppressed_range_ids;
-  const char **const pending_output;
+  Pending_output *const pending_outputs;
   int pending_output_counter;
   char *const next_line;
 } Status;

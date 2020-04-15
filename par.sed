@@ -44,6 +44,7 @@ s/^b[[:blank:]]*\([^;}][^[:blank:];}]*\)/goto \1;\n/; t label_cmds
 s/^t[[:blank:]]*\([^;}][^[:blank:];}]*\)/if (status.sub_success) { status.sub_success = false; goto \1; }\n/; t label_cmds
 # semi-colon needed since declarations cannot directly follow a label in C
 s/^:[[:blank:]]*\([^;}][^[:blank:];}]*\)/\1:;\n/; t label_cmds
+s/^r[[:blank:]]*//; t r_cmd
 s/^s//; t s_cmd
 s/^y//; t y_cmd
 s/^[hHgGlpPqx]/&(\&status);\
@@ -65,7 +66,7 @@ t single_char_cmd
 s/^\([aci]\)[[:blank:]]*\\$/\1/; t aci_cmds
 
 # TODO missing cmds
-# w, r, l
+# w, l
 
 : address_check
 s|^/|&|; t addr_regex
@@ -136,6 +137,12 @@ b fail
 x
 s/^/r/
 t regex_start_process
+
+: r_cmd
+s/["\]/\\&/g
+s/.*/r(\&status, "&");/
+n
+b start
 
 : s_cmd
 # s cmd needs a scope since for the case:

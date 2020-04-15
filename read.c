@@ -4,11 +4,31 @@
 
 #include "status.h"
 
-bool read_pattern(Status *const status, char *const buf, const int size) {
+#define READ_CHUNK_SIZE 512
+
+static void handle_pending_ouput(Status *const status) {
   for (int i = 0; i < status->pending_output_counter; ++i) {
-    puts(status->pending_output[i]);
+    const Pending_output p = status->pending_outputs[i];
+    if (p.is_filepath) {
+      FILE *const f = fopen(p.filepath, "r");
+      if (!f) {
+        continue;
+      }
+      char *read_chunk[READ_CHUNK_SIZE];
+      size_t nread;
+      while ((nread = fread(read_chunk, 1, READ_CHUNK_SIZE, f)) > 0) {
+        fwrite(read_chunk, 1, nread, stdout);
+      }
+      fclose(f);
+    } else {
+      puts(p.direct_output);
+    }
   }
   status->pending_output_counter = 0;
+}
+
+bool read_pattern(Status *const status, char *const buf, const int size) {
+  handle_pending_ouput(status);
 
   if (status->line_nb > 0 && status->line_nb == status->last_line_nb) {
     return 0;

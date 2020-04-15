@@ -23,6 +23,7 @@ operation_ret N(Status *const status);
 void p(const Status *const status);
 void P(const Status *const status);
 void q(const Status *const status);
+void r(Status *const status, const char *const filepath);
 void s(
   Status *const status,
   Regex *const regex,

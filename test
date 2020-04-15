@@ -414,4 +414,24 @@ verify 'N; y/a\nb/dxe/' 'Hello
 World'
 verify 'y///' 'foo'
 
+verify 'r non-existing-file
+s/^/x/' 'bar
+baz'
+
+r_test_file="$(mktemp)"
+echo foo > "$r_test_file"
+
+verify 'r '"$r_test_file"'
+s/^/x/' 'bar
+baz'
+
+# like a/c/i the filename takes the whole line
+verify 'r '"$r_test_file"'; s/^/x/' 'bar
+baz'
+
+rm "$r_test_file"
+
+# TODO once w is implemented, test that r dumps the file contents as they are at
+# the time of printing and not at the time where r is encountered
+
 end_tests

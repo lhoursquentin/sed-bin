@@ -163,7 +163,10 @@ static int substitution(
 }
 
 void a(Status *const status, const char *const output) {
-  status->pending_output[status->pending_output_counter++] = output;
+  Pending_output *const p =
+    &status->pending_outputs[status->pending_output_counter++];
+  p->is_filepath = false;
+  p->direct_output = output;
 }
 
 void c(Status *const status, const char *const output) {
@@ -285,6 +288,13 @@ void P(const Status *const status) {
 void q(const Status *const status) {
   p(status);
   exit(0);
+}
+
+void r(Status *const status, const char *const filepath) {
+  Pending_output *const p =
+    &status->pending_outputs[status->pending_output_counter++];
+  p->is_filepath = true;
+  p->filepath = filepath;
 }
 
 void s(
