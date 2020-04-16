@@ -25,6 +25,8 @@ int main(int argc, char **argv) {
     .next_line = (char[PATTERN_SIZE]){},
   };
 
+  #include "generated-init.c"
+
   while (true) {
     if (status.skip_read) {
       status.skip_read = false;

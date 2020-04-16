@@ -151,9 +151,6 @@ Files generated.c and - are identical
 
 # Notes
 
-- Missing command (supporting it is planned):
-  - w
-
 - Missing/incomplete features (supporting those is planned):
   - empty label jumps
   - #n marker

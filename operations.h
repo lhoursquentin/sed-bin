@@ -31,6 +31,7 @@ void s(
   const char *const replace,
   const int opts
 );
+void w(const Status *const status, FILE *const f);
 void x(Status *const status);
 void y(Status *const status, const char *const set1, const char *const set2);
 

@@ -3,7 +3,7 @@ bin = sed-bin
 
 $(bin): $(objs)
 
-sed-bin.o: generated.c
+sed-bin.o: generated.c generated-init.c
 
 .PHONY: clean
 

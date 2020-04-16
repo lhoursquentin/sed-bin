@@ -400,6 +400,10 @@ void s(
   }
 }
 
+void w(const Status *const status, FILE *const f) {
+  fputs(status->pattern_space, f);
+}
+
 void x(Status *const status) {
   char *const pattern_space = status->pattern_space;
   char *const hold_space = status->hold_space;

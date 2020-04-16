@@ -2,13 +2,16 @@
 
 # The first line of the hold space is used for temporary storage in this script,
 # never use it to store data longer than a single command.
-# Second line will act as an id to create unique variable names, though this
-# line should be located from the bottom.
+# Second line will act as an id to create unique variable names for w cmd files
+# Same for the third but for regexes
+# 2nd and 3rd lines should be located from the bottom since the hold might grow
+# between the current first and second line.
 
 1{
   x
   s/^/\
-reg_x/
+x\
+x/
   x
 }
 
@@ -45,6 +48,7 @@ s/^t[[:blank:]]*\([^;}][^[:blank:];}]*\)/if (status.sub_success) { status.sub_su
 # semi-colon needed since declarations cannot directly follow a label in C
 s/^:[[:blank:]]*\([^;}][^[:blank:];}]*\)/\1:;\n/; t label_cmds
 s/^r[[:blank:]]*//; t r_cmd
+s/^w[[:blank:]]*//; t w_cmd
 s/^s//; t s_cmd
 s/^y//; t y_cmd
 s/^[hHgGlpPqx]/&(\&status);\
@@ -64,9 +68,6 @@ s/^[Nn]/if (&(\&status) == BREAK) break;\
 t single_char_cmd
 
 s/^\([aci]\)[[:blank:]]*\\$/\1/; t aci_cmds
-
-# TODO missing cmd
-# w
 
 : address_check
 s|^/|&|; t addr_regex
@@ -141,6 +142,32 @@ t regex_start_process
 : r_cmd
 s/["\]/\\&/g
 s/.*/r(\&status, "&");/
+n
+b start
+
+: w_cmd
+s/["\]/\\&/g
+H
+x
+
+s/\(.*\)\
+\(.*\)\
+\(.*\)\
+\(.*\)/\1\
+\2x\
+\3\
+w(\&status, wfile_\2);\
+FILE *const wfile_\2 = fopen("\4", "w");/
+
+h
+s/\(.*\)\n.*/\1/
+x
+s/.*\n\(.*\)/\1/
+w generated-init.c
+g
+s/\(.*\)\n.*/\1/
+x
+s/.*\n\(.*\)/\1/
 n
 b start
 
@@ -275,8 +302,8 @@ s/\(.*\)\
 \(.*\)\
 \(.*\)/\1\
 \2x\
-\3\&\2\
-static Regex \2 = {.compiled = false, .str = \4};/
+\3\&reg_\2\
+static Regex reg_\2 = {.compiled = false, .str = \4};/
 # save current line we are working on
 G
 # save everything to hold

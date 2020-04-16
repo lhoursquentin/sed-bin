@@ -420,20 +420,27 @@ verify 'r non-existing-file
 s/^/x/' 'bar
 baz'
 
-r_test_file="$(mktemp)"
-echo foo > "$r_test_file"
+test_file="$(mktemp)"
+echo foo > "$test_file"
 
-verify 'r '"$r_test_file"'
+verify 'r '"$test_file"'
 s/^/x/' 'bar
 baz'
 
 # like a/c/i the filename takes the whole line
-verify 'r '"$r_test_file"'; s/^/x/' 'bar
+verify 'r '"$test_file"'; s/^/x/' 'bar
 baz'
 
-rm "$r_test_file"
+# Even if w is not executed, POSIX specifies that files must be created before
+# processing
+rm "$test_file"
+verify '/non matching pattern/w '"$test_file" 'foo'
+assert_true [ -f "$test_file" ] -- 'File created without w cmd execution'
 
-# TODO once w is implemented, test that r dumps the file contents as they are at
-# the time of printing and not at the time where r is encountered
+verify 's/^/x/; /foo/w '"$test_file"'
+s/^/y/; r '"$test_file"'
+d'
+
+rm "$test_file"
 
 end_tests
