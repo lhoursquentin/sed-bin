@@ -43,8 +43,17 @@ t start
 
 : cmd_check
 s|^#|//|; t comment
-s/^b[[:blank:]]*\([^;}][^[:blank:];}]*\)/goto \1;\n/; t label_cmds
-s/^t[[:blank:]]*\([^;}][^[:blank:];}]*\)/if (status.sub_success) { status.sub_success = false; goto \1; }\n/; t label_cmds
+/^[bt]/{
+  s/^b[[:blank:]]*\([^[:blank:];}][^[:blank:];}]*\)/goto \1;\n/
+  t label_cmds
+  s/^t[[:blank:]]*\([^[:blank:];}][^[:blank:];}]*\)/if (status.sub_success) { status.sub_success = false; goto \1; }\n/
+  t label_cmds
+
+  s/./&{ puts(status.pattern_space); continue; }\n/
+  s/^t/&if (status.sub_success) /
+  s/.//
+  t label_cmds
+}
 # semi-colon needed since declarations cannot directly follow a label in C
 s/^:[[:blank:]]*\([^;}][^[:blank:];}]*\)/\1:;\n/; t label_cmds
 s/^r[[:blank:]]*//; t r_cmd

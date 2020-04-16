@@ -152,7 +152,6 @@ Files generated.c and - are identical
 # Notes
 
 - Missing/incomplete features (supporting those is planned):
-  - empty label jumps
   - #n marker
   - c command correct behavior with 2 addresses
   - s command nth and w options

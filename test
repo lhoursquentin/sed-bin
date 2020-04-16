@@ -196,9 +196,22 @@ verify 's/.*/yo/; n; t end; p; : end; d' 'foo
 bar'
 verify 's/.*/yo/; N; t end; p; : end; d' 'foo
 bar'
+verify 's/^/x/; t; s/^/y/' 'foo
+bar'
+verify 's/^/x/; t   ; s/^/y/' 'foo
+bar'
+verify 's/non matching pattern/x/; t; s/^/y/' 'foo
+bar'
+verify 's/non matching pattern/x/; t ; s/^/y/' 'foo
+bar'
+
 
 # b
 verify ':start; s/.//; /^[^[:blank:]]/b start' 'Hello World'
+verify 's/^/x/; b; s/^/y/' 'foo
+bar'
+verify 's/^/x/; b   ; s/^/y/' 'foo
+bar'
 
 # H and G
 verify 'H;H;G;' 'Hello World'
