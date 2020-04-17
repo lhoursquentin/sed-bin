@@ -296,7 +296,7 @@ t regex_eat_next
 : regex_valid_delim_eaten
 
 # Found second delim for the s cmd
-s/^s1\(.*\)$/s\1, 0/
+s/^s1\(.*\)$/s\1/
 t s_cmd_handle_options
 
 # case of regex closing a range: swap chars since we insert from the beginning
@@ -345,32 +345,118 @@ t valid_s_or_addr_parsing
 # POSIX specifies s valid opts are: g, <nth occurence>, w <file> and p
 # TODO handle all s options
 : s_cmd_handle_options
-# At this point we don't know yet if there are any options
+# At this point we don't know yet if there are any options.
+# Prepare 3 lines for options: 1st for g and p, 2nd for nth and 3rd for w.
+s/$/\
+0\
+1\
+NULL/
 x
 # remove delim, we don't need to keep it anymore
 s/.//
 t s_cmd_eat_options
 
-# could do something shorter with y/gp/GP/
 : s_cmd_eat_options
-s/^g/G/
-t s_cmd_add_prefix_opt
-s/^p/P/
-t s_cmd_add_prefix_opt
+/^[gp]/{
+  s/^g/G/
+  s/^p/P/
+  s/./&\n/
+  # save to hold and remove processed option from pattern
+  H
+  s/..//
+  x
+  # process and clean saved line
+  s/\(.*\)\
+\(.*\)\
+\(.*\)\
+\(.*\)\
+\(.*\)\
+.*/\1\
+\2 | S_OPT_\5\
+\3\
+\4/
+  x
+  t s_cmd_eat_options
+}
+
+/^[0-9]/{
+  s/^[0-9]*/&\n/
+  H
+  # rm nb
+  s///
+  # rm newline
+  s/.//
+  x
+  s/\(.*\)\
+.*\
+\(.*\)\
+\(.*\)\
+.*/\1\
+\3\
+\2/
+  x
+  t s_cmd_eat_options
+}
+
+/^w/{
+  s/^w[[:blank:]]*//
+  # w_cmd variation
+  s/["\]/\\&/g
+  H
+  x
+
+  # 1 - rest of the top of the hold
+  # 2 - id for files
+  # 3 - id for regexes
+  #   - s cmd call in progress
+  #   - g/p opts
+  #   - nth
+  #   - NULL placeholder for the FILE ptr
+  # 4 - filepath
+
+  s/\(.*\)\
+\(.*\)\
+\(.*\
+.*\
+.*\
+.*\)\
+.*\
+\(.*\)/\1\
+\2x\
+\3\
+wfile_\2\
+FILE *const wfile_\2 = fopen("\4", "w");/
+
+  # we can overwrite everything since the whole rest of the line is part of the
+  # filename
+  h
+  s/\(.*\)\n.*/\1/
+  x
+  s/.*\n\(.*\)/\1/
+  w generated-init.c
+  # clean it as this will be considered as the rest of the current line
+  s/.*//
+  x
+  # no options left since w <file> must be last
+  t end_of_s_opts
+}
 
 x
-b valid_s_or_addr_parsing
 
-: s_cmd_add_prefix_opt
-# save to hold and remove processed option from pattern
-H
-s/.//
-x
-# process and clean saved line
+: end_of_s_opts
+# 1 - rest of the top of the hold
+# 2 - s cmd call in progress
+# 3 - g/p opts
+# 4 - nth
+# 5 - FILE ptr
 s/\(.*\)\
-\(.\).*/\1 | S_OPT_\2/
-x
-t s_cmd_eat_options
+\(.*\)\
+\(.*\)\
+\(.*\)\
+\(.*\)/\1\
+\2, \3, \4, \5/
+
+b valid_s_or_addr_parsing
 
 : valid_s_or_addr_parsing
 /^[rn]/{
