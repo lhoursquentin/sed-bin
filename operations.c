@@ -88,7 +88,8 @@ static int substitution(
     regex_t *const regex,
     char *pattern_space,
     const char *const replace,
-    const bool first_sub_done
+    const int sub_nb,
+    const int nth
 ) {
   regmatch_t pmatch[MAX_MATCHES];
   if (regexec(
@@ -96,22 +97,25 @@ static int substitution(
         pattern_space,
         MAX_MATCHES,
         pmatch,
-        first_sub_done ? REG_NOTBOL : 0
+        sub_nb > 1 ? REG_NOTBOL : 0
   )) {
     return -1;
   }
 
-  const int pattern_space_len = strlen(pattern_space);
   const int so = pmatch[0].rm_so; // start offset
   assert(so != -1);
   const int eo = pmatch[0].rm_eo; // end offset
-  char replace_expanded[512]; // TODO abitrary size, might be too small
+  if (nth > sub_nb) {
+    return eo;
+  }
+  char replace_expanded[PATTERN_SIZE]; // TODO abitrary size, might be too small
   const int replace_expanded_len =
     expand_replace(replace_expanded, pattern_space, replace, pmatch);
 
+  const int pattern_space_len = strlen(pattern_space);
   // empty match, s/^/foo/ for instance
   if (eo == 0) {
-    if (!first_sub_done) {
+    if (sub_nb == 1) {
       memmove(
         pattern_space + replace_expanded_len,
         pattern_space,
@@ -356,7 +360,9 @@ void s(
   Status *const status,
   Regex *const regex,
   const char *const replace,
-  const int opts)
+  const int opts,
+  const int nth,
+  FILE *const f)
 {
   status->last_regex = regex;
   regex_t *const regex_obj = &regex->obj;
@@ -369,39 +375,46 @@ void s(
     }
   }
 
-  // TODO nth/w opts
   const bool opt_g = opts & S_OPT_G;
   const bool opt_p = opts & S_OPT_P;
 
   char *pattern_space = status->pattern_space;
   int pattern_offset = 0;
-  bool first_sub_done = false;
+  int sub_nb = 1;
   do {
     pattern_offset = substitution(
       regex_obj,
       pattern_space,
       replace,
-      first_sub_done
+      sub_nb,
+      nth
     );
     if (pattern_offset == -1) {
       break;
     }
-    // if opt_g is enabled then we want to avoid ^ to keep its meaning for the
-    // next iterations
-    first_sub_done = true;
+    sub_nb++;
     pattern_space += pattern_offset;
-  } while (opt_g && pattern_space[0] && pattern_offset);
+  } while ((opt_g || nth >= sub_nb) && pattern_space[0] && pattern_offset);
 
-  if (first_sub_done) {
+  if (sub_nb > nth) {
     status->sub_success = true;
     if (opt_p) {
       puts(status->pattern_space);
     }
+    w(status, f);
   }
 }
 
 void w(const Status *const status, FILE *const f) {
-  fputs(status->pattern_space, f);
+  if (f) {
+    fputs(status->pattern_space, f);
+    fputc('\n', f); // unlike puts, fputs doesn't add a trailing newline
+
+    // Potential following reads on the same file within the same sed script
+    // should return the up-to-date content, this is used in tests to avoid
+    // external checks and is correctly handled by GNU sed
+    fflush(f);
+  }
 }
 
 void x(Status *const status) {

@@ -187,6 +187,30 @@ verify 's/[^ ]*/yo/' 'foo'
 verify 's/^/Leading insert/' 'Hello World'
 verify 's/$/Trailing insert/' 'Hello World'
 
+verify 's/x/y/3' 'axbxcxdxex
+fxgxhxixjx'
+verify 's/x/y/3g' 'axbxcxdxex
+fxgxhxixjx'
+verify 's/x/y/p3g' 'axbxcxdxex
+fxgxhxixjx'
+verify 's/x/y/3pg' 'axbxcxdxex
+fxgxhxixjx'
+verify 's/x/y/pg3' 'axbxcxdxex
+fxgxhxixjx'
+
+test_file="$(mktemp)"
+rm "$test_file"
+
+verify 's/x/y/pg3w '"$test_file"'
+r '"$test_file" 'axbxcxdxex
+fxgxhxixjx'
+rm "$test_file"
+
+verify 's/non-matching/y/pg3w '"$test_file"'
+r '"$test_file" 'axbxcxdxex
+fxgxhxixjx'
+rm "$test_file"
+
 # t
 verify ': start; s/^[^[:blank:]]//; t start' 'Hello World'
 # t, verify that reading a newline resets the substitution success to false
@@ -452,7 +476,7 @@ assert_true [ -f "$test_file" ] -- 'File created without w cmd execution'
 
 verify 's/^/x/; /foo/w '"$test_file"'
 s/^/y/; r '"$test_file"'
-d'
+s/^/z/' 'foo'
 
 rm "$test_file"
 

@@ -154,7 +154,6 @@ Files generated.c and - are identical
 - Missing/incomplete features (supporting those is planned):
   - #n marker
   - c command correct behavior with 2 addresses
-  - s command nth and w options
 
 - The translator does not handle invalid sed scripts, it will just generate
   invalid C code which will probably fail to compile, make sure you can run your
