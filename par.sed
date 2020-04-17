@@ -10,8 +10,8 @@
 1{
   x
   s/^/\
-x\
-x/
+0\
+0/
   x
 }
 
@@ -306,13 +306,44 @@ s/^r\([rn]\)/\1r/
 # At this point if we do not have a string on the last line then that means
 # we're in the last_regex case, skip regex creation
 /"$/!b skip_regex_creation
+# move the id to the top and increment it
 s/\(.*\)\
 \(.*\)\
 \(.*\)\
-\(.*\)/\1\
-\2x\
-\3\&reg_\2\
-static Regex reg_\2 = {.compiled = false, .str = \4};/
+\(.*\)/\2\
+\1\
+\3\
+\4/
+
+s/\n/|&/
+t id_inc_start
+: id_inc_start
+s/^\([0-9]*\)0|/\11/; t id_inc_end
+s/^\([0-9]*\)1|/\12/; t id_inc_end
+s/^\([0-9]*\)2|/\13/; t id_inc_end
+s/^\([0-9]*\)3|/\14/; t id_inc_end
+s/^\([0-9]*\)4|/\15/; t id_inc_end
+s/^\([0-9]*\)5|/\16/; t id_inc_end
+s/^\([0-9]*\)6|/\17/; t id_inc_end
+s/^\([0-9]*\)7|/\18/; t id_inc_end
+s/^\([0-9]*\)8|/\19/; t id_inc_end
+
+: id_inc_loop
+s/^\([0-9]*\)9|/\1|0/
+t id_inc_loop
+s/^|/1/; t id_inc_end
+b id_inc_start
+: id_inc_end
+
+# id is incremented, move it back down and use it
+
+s/^\([0-9]*\)\
+\(.*\)\
+\(.*\)\
+\(.*\)/\2\
+\1\
+\3\&reg_\1\
+static Regex reg_\1 = {.compiled = false, .str = \4};/
 # save current line we are working on
 G
 # save everything to hold
@@ -343,7 +374,6 @@ x
 t valid_s_or_addr_parsing
 
 # POSIX specifies s valid opts are: g, <nth occurence>, w <file> and p
-# TODO handle all s options
 : s_cmd_handle_options
 # At this point we don't know yet if there are any options.
 # Prepare 3 lines for options: 1st for g and p, 2nd for nth and 3rd for w.
