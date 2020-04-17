@@ -197,6 +197,13 @@ verify 's/x/y/3pg' 'axbxcxdxex
 fxgxhxixjx'
 verify 's/x/y/pg3' 'axbxcxdxex
 fxgxhxixjx'
+verify 's/x/y/4; t; d' 'axbxcxdxex
+fxgxhxixjx'
+# sub success should not be set if the nth is never reached
+verify 's/x/y/40; t; d' 'axbxcxdxex
+fxgxhxixjx'
+# check we can parse nth over 9
+verify 's/x/y/12' 'xxxxxxxxxxxxxxxxxxxx'
 
 test_file="$(mktemp)"
 rm "$test_file"
