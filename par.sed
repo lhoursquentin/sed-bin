@@ -210,8 +210,7 @@ t regex_start_process
 # If we are processing the second address in a range, we want to avoid adding a
 # newline since we have the beginning of the C code for this range at the bottom
 # of the hold.
-/^.[^rn]/s/$/\n/
-s/$/\n/
+/^[rn][rn]/!s/$/\n/
 
 # check if this is an empty pattern, in which case we want to use the last one
 
@@ -220,11 +219,12 @@ s/$/\n/
   /^\(.\)\1/{
     s//\1/
     x
-    s/\n$/status.last_regex/
+    s/$/status.last_regex/
     t regex_valid_delim_eaten
   }
   x
 }
+/^[srn]/s/$/\n/
 s/$/"/
 # reset sub success value
 t regex_insert_c_start
@@ -358,7 +358,7 @@ x
 # get rid of regex declaration and saved current line
 s/\(.*\)\n.*\n.*/\1/
 : skip_regex_creation
-s/y1/y/
+s/^y1/y/
 
 # Found first delim for the s/y cmd
 /^[sy]0/{
