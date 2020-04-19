@@ -1,4 +1,4 @@
-#!/bin/sed -f
+#!/usr/bin/sed -f
 
 # The first line of the hold space is used for temporary storage in this script,
 # never use it to store data longer than a single command.
@@ -44,18 +44,22 @@ t start
 : cmd_check
 s|^#|//|; t comment
 /^[bt]/{
-  s/^b[[:blank:]]*\([^[:blank:];}][^[:blank:];}]*\)/goto \1;\n/
+  s/^b[[:blank:]]*\([^[:blank:];}][^[:blank:];}]*\)/goto \1;\
+/
   t label_cmds
-  s/^t[[:blank:]]*\([^[:blank:];}][^[:blank:];}]*\)/if (status.sub_success) { status.sub_success = false; goto \1; }\n/
+  s/^t[[:blank:]]*\([^[:blank:];}][^[:blank:];}]*\)/if (status.sub_success) { status.sub_success = false; goto \1; }\
+/
   t label_cmds
 
-  s/./&{ puts(status.pattern_space); continue; }\n/
+  s/./&{ puts(status.pattern_space); continue; }\
+/
   s/^t/&if (status.sub_success) /
   s/.//
   t label_cmds
 }
 # semi-colon needed since declarations cannot directly follow a label in C
-s/^:[[:blank:]]*\([^;}][^[:blank:];}]*\)/\1:;\n/; t label_cmds
+s/^:[[:blank:]]*\([^;}][^[:blank:];}]*\)/\1:;\
+/; t label_cmds
 s/^r[[:blank:]]*//; t r_cmd
 s/^w[[:blank:]]*//; t w_cmd
 s/^s//; t s_cmd
@@ -94,8 +98,7 @@ d
 
 : single_char_cmd
 P
-s/.*\
-//
+s/.*\n//
 t start
 s/^/single char cmd cleanup: /
 b fail
@@ -109,7 +112,8 @@ x
 x
 # add address followed by a newline, the pattern should never have more than one
 # newline
-s/^/status.last_line_nb\n/
+s/^/status.last_line_nb\
+/
 # save address to hold and strip it from pattern, only leaving rest of the line
 H
 s/^.*\n//
@@ -118,9 +122,7 @@ x
 # remove H call newline and the very last line which is the rest of the current
 # line.
 # include address type at the very top (n).
-s/^\([rn]*\)\(.*\)\
-\(.*\)\
-.*/\1n\2\3/
+s/^\([rn]*\)\(.*\)\n\(.*\)\n.*/\1n\2\3/
 t valid_s_or_addr_parsing
 b fail
 
@@ -138,8 +140,7 @@ x
 # back to hold
 # remove H call newline and the rest of the line (only keep the number), also
 # include address type at the very top (n).
-s/^\([rn]*\)\(.*\)\
-\([0-9][0-9]*\).*/\1n\2\3/
+s/^\([rn]*\)\(.*\)\n\([0-9][0-9]*\).*/\1n\2\3/
 t valid_s_or_addr_parsing
 b fail
 
@@ -159,10 +160,7 @@ s/["\]/\\&/g
 H
 x
 
-s/\(.*\)\
-\(.*\)\
-\(.*\)\
-\(.*\)/\1\
+s/\(.*\)\n\(.*\)\n\(.*\)\n\(.*\)/\1\
 \2x\
 \3\
 w(\&status, wfile_\2);\
@@ -210,7 +208,8 @@ t regex_start_process
 # If we are processing the second address in a range, we want to avoid adding a
 # newline since we have the beginning of the C code for this range at the bottom
 # of the hold.
-/^[rn][rn]/!s/$/\n/
+/^[rn][rn]/!s/$/\
+/
 
 # check if this is an empty pattern, in which case we want to use the last one
 
@@ -224,7 +223,8 @@ t regex_start_process
   }
   x
 }
-/^[srn]/s/$/\n/
+/^[srn]/s/$/\
+/
 s/$/"/
 # reset sub success value
 t regex_insert_c_start
@@ -244,8 +244,7 @@ x
   x
   # read next line and remove automatic newline between delim and next line
   N
-  s/^\(.\)\
-/\1/
+  s/^\(.\)\n/\1/
   t regex_eat_next
 }
 
@@ -281,15 +280,12 @@ t regex_save_char
 : regex_save_char
 H
 # get rid of eaten char and newline
-s/.*\
-//
+s/.*\n//
 x
 # On the bottom line we have: {chars eaten}<newline>{delim}{rest of line}, we
 # just want to append the {chars eaten} to the end of the line before the last,
 # the one containing the C code under construction.
-s/\(.*\)\
-\(.*\)\
-.*/\1\2/
+s/\(.*\)\n\(.*\)\n.*/\1\2/
 x
 t regex_eat_next
 
@@ -307,10 +303,7 @@ s/^r\([rn]\)/\1r/
 # we're in the last_regex case, skip regex creation
 /"$/!b skip_regex_creation
 # move the id to the top and increment it
-s/\(.*\)\
-\(.*\)\
-\(.*\)\
-\(.*\)/\2\
+s/\(.*\)\n\(.*\)\n\(.*\)\n\(.*\)/\2\
 \1\
 \3\
 \4/
@@ -337,10 +330,7 @@ b id_inc_start
 
 # id is incremented, move it back down and use it
 
-s/^\([0-9]*\)\
-\(.*\)\
-\(.*\)\
-\(.*\)/\2\
+s/^\([0-9]*\)\n\(.*\)\n\(.*\)\n\(.*\)/\2\
 \1\
 \3\&reg_\1\
 static Regex reg_\1 = {.compiled = false, .str = \4};/
@@ -390,18 +380,14 @@ t s_cmd_eat_options
 /^[gp]/{
   s/^g/G/
   s/^p/P/
-  s/./&\n/
+  s/./&\
+/
   # save to hold and remove processed option from pattern
   H
   s/..//
   x
   # process and clean saved line
-  s/\(.*\)\
-\(.*\)\
-\(.*\)\
-\(.*\)\
-\(.*\)\
-.*/\1\
+  s/\(.*\)\n\(.*\)\n\(.*\)\n\(.*\)\n\(.*\)\n.*/\1\
 \2 | S_OPT_\5\
 \3\
 \4/
@@ -410,18 +396,15 @@ t s_cmd_eat_options
 }
 
 /^[0-9]/{
-  s/^[0-9]*/&\n/
+  s/^[0-9]*/&\
+/
   H
   # rm nb
   s///
   # rm newline
   s/.//
   x
-  s/\(.*\)\
-.*\
-\(.*\)\
-\(.*\)\
-.*/\1\
+  s/\(.*\)\n.*\n\(.*\)\n\(.*\)\n.*/\1\
 \3\
 \2/
   x
@@ -444,14 +427,7 @@ t s_cmd_eat_options
   #   - NULL placeholder for the FILE ptr
   # 4 - filepath
 
-  s/\(.*\)\
-\(.*\)\
-\(.*\
-.*\
-.*\
-.*\)\
-.*\
-\(.*\)/\1\
+  s/\(.*\)\n\(.*\)\n\(.*\n.*\n.*\n.*\)\n.*\n\(.*\)/\1\
 \2x\
 \3\
 wfile_\2\
@@ -479,11 +455,7 @@ x
 # 3 - g/p opts
 # 4 - nth
 # 5 - FILE ptr
-s/\(.*\)\
-\(.*\)\
-\(.*\)\
-\(.*\)\
-\(.*\)/\1\
+s/\(.*\)\n\(.*\)\n\(.*\)\n\(.*\)\n\(.*\)/\1\
 \2, \3, \4, \5/
 
 b valid_s_or_addr_parsing
@@ -534,9 +506,7 @@ H
 # 2nd line is the C code that we need to print, we'll swap it last
 # 3rd line is the rest of the line on which the s cmd was
 g
-s/^\(.*\)\
-\(.*\)\
-\(.*\)$/\1\
+s/^\(.*\)\n\(.*\)\n\(.*\)$/\1\
 \3\
 \2/
 
@@ -546,22 +516,18 @@ h
 # also where we actually complete the name and fixed args of the function.
 # The very top of the hold contains the info needed to generate the correct
 # function name
-s/^\([^[:space:]]*\).*\
-/\1(\&status, /
+s/^\([^[:space:]]*\).*\n/\1(\&status, /
 s/^[nr].*/if (addr_&)/
 p
 # clean the C code from the hold
 g
-s/^\(.*\)\
-.*/\1/
+s/^\(.*\)\n.*/\1/
 h
 # hold still contains current line, we need to remove it from there and also
 # have it in the pattern space
-s/.*\
-//
+s/.*\n//
 x
-s/\(.*\)\
-.*/\1/
+s/\(.*\)\n.*/\1/
 # reset sub success value
 t valid_hold_reorder
 : valid_hold_reorder
@@ -574,8 +540,7 @@ b fail
 
 : label_cmds
 P
-s/.*\
-//
+s/.*\n//
 t start
 s/^/label cmds cleanup: /
 b fail
@@ -587,7 +552,8 @@ t aci_cmds
 # remove first newline
 s/\n//
 # "\n" -> '\n'
-s/\\n/\n/g
+s/\\n/\
+/g
 # \<any char> -> <any char>
 s/\\\(.\)/\1/g
 # quotes and backslashes must be escaped for the C
