@@ -104,7 +104,12 @@ s/^/single char cmd cleanup: /
 b fail
 
 : addr_last_line
+H
+s/.*/status.last_line_addr_present = true;/w generated-init.c
+g
+s/.*\n//
 x
+s/\(.*\)\n.*/\1/
 # work on the hold, if second address, do not add a newline (we've already built
 # the start of the C code on a new line)
 /^[^rn]/s/$/\

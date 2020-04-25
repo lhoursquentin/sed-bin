@@ -30,12 +30,14 @@ static void handle_pending_ouput(Status *const status) {
 bool read_pattern(Status *const status, char *const buf, const int size) {
   handle_pending_ouput(status);
 
-  if (status->line_nb > 0 && status->line_nb == status->last_line_nb) {
+  if (status->last_line_addr_present &&
+      status->line_nb > 0 &&
+      status->line_nb == status->last_line_nb) {
     return 0;
   }
 
   int read_len;
-  if (status->line_nb == 0) {
+  if (!status->last_line_addr_present || status->line_nb == 0) {
     if (!fgets(buf, size, stdin)) {
       return 0;
     }
@@ -52,7 +54,8 @@ bool read_pattern(Status *const status, char *const buf, const int size) {
 
   // try to read the next line, if we fail then that means that the current line
   // is the last one
-  if (!fgets(status->next_line, size, stdin)) {
+  if (status->last_line_addr_present &&
+      !fgets(status->next_line, size, stdin)) {
     status->last_line_nb = status->line_nb;
   }
 

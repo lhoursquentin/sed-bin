@@ -23,6 +23,7 @@ int main(int argc, char **argv) {
     .pending_outputs = (Pending_output[MAX_PENDING_OUTPUT]){},
     .pending_output_counter = 0,
     .next_line = (char[PATTERN_SIZE]){},
+    .last_line_addr_present = false,
   };
 
   #include "generated-init.c"

@@ -457,6 +457,7 @@ verify 'y/axb/d\ne/' 'HelloxWorld'
 verify 'N; y/a\nb/dxe/' 'Hello
 World'
 verify 'y///' 'foo'
+verify 's/a/b/; y/c/d/; s/e/f/' 'abcdef'
 
 verify 'l' 'foo \\ \ '"$(printf '\a\b\f\r\t\v')"' é '"$(printf '\001\020\300')"' bar'
 
@@ -484,6 +485,8 @@ assert_true [ -f "$test_file" ] -- 'File created without w cmd execution'
 verify 's/^/x/; /foo/w '"$test_file"'
 s/^/y/; r '"$test_file"'
 s/^/z/' 'foo'
+
+verify 's/^$/x/' ''
 
 rm "$test_file"
 
