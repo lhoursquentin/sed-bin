@@ -5,6 +5,7 @@
 #define MAX_MATCHES 9
 #define MAX_ACTIVE_RANGES 100
 #define MAX_PENDING_OUTPUT 100
+#define MAX_WFILES 10
 
 typedef enum {
   CONTINUE,

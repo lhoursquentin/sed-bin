@@ -169,7 +169,7 @@ s/\(.*\)\n\(.*\)\n\(.*\)\n\(.*\)/\1\
 \2x\
 \3\
 w(\&status, wfile_\2);\
-FILE *const wfile_\2 = fopen("\4", "w");/
+FILE *const wfile_\2 = open_file(open_file_paths, open_file_handles, "\4");/
 
 h
 s/\(.*\)\n.*/\1/
@@ -436,7 +436,7 @@ t s_cmd_eat_options
 \2x\
 \3\
 wfile_\2\
-FILE *const wfile_\2 = fopen("\4", "w");/
+FILE *const wfile_\2 = open_file(open_file_paths, open_file_handles, "\4");/
 
   # we can overwrite everything since the whole rest of the line is part of the
   # filename

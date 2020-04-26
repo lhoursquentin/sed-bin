@@ -153,7 +153,6 @@ Files generated.c and - are identical
 
 - Missing/incomplete features (supporting/fixing those is planned):
   - leading `#n` marker is not handled
-  - separate `w` calls on the same file will truncate each other
   - with 2 addresses, the `c` command will be executed every time for each
   matching line instead of only once when leaving the range.
 

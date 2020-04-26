@@ -89,10 +89,12 @@ end_tests() {
 bin=./sed-bin
 translator=./par.sed
 generated_file=generated.c
+generated_init_file=generated-init.c
 
-trap 'rm -f "$bin_output" "$expected_output"' EXIT
+trap 'rm -f "$bin_generated_file_output" "$previous_generated_init_file" "$expected_output"' EXIT
 expected_output="$(mktemp)"
-bin_output="$(mktemp)"
+bin_generated_file_output="$(mktemp)"
+previous_generated_init_file="$(mktemp)"
 # toybox, busybox, bsd sed and gnu sed are the most common targets
 sed_implementation='sed' # requiring an IFS split rules out default zsh
 # --posix is usually for the gnu version
@@ -104,10 +106,12 @@ compile_translator() {
   # Tranlate the translator with itself
   "$translator" < "$translator" > "$generated_file" &&
   make -s &&
+  cp "$generated_init_file" "$previous_generated_init_file" &&
   # Compiled tranlator should be able to translate the translator and yield the
   # exact same output
-  "$bin" < "$translator" > "$bin_output" &&
-  diff --side-by-side --suppress-common-lines "$generated_file" "$bin_output"
+  "$bin" < "$translator" > "$bin_generated_file_output" &&
+  diff --side-by-side --suppress-common-lines "$generated_file" "$bin_generated_file_output" &&
+  diff --side-by-side --suppress-common-lines "$previous_generated_init_file" "$generated_init_file"
 }
 
 equal_output() {
@@ -116,8 +120,8 @@ equal_output() {
   printf '%s\n' "$input" | $sed_implementation "$sed_code" > "$expected_output" &&
   printf '%s\n' "$sed_code" | "$translator" > "$generated_file" &&
   make -s &&
-  printf '%s\n' "$input" | "$bin" > "$bin_output" &&
-  diff --side-by-side "$expected_output" "$bin_output"
+  printf '%s\n' "$input" | "$bin" > "$bin_generated_file_output" &&
+  diff --side-by-side "$expected_output" "$bin_generated_file_output"
 }
 
 verify() {
