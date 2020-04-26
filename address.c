@@ -30,11 +30,11 @@ bool addr_rr(
   Status *const status,
   Regex *const start,
   Regex *const end,
-  const int id
+  const size_t id
 ) {
-  int *const range_ids = status->range_ids;
-  int *free_slot = NULL;
-  int i;
+  size_t *const range_ids = status->range_ids;
+  size_t *free_slot = NULL;
+  size_t i;
   for (i = 0; i < MAX_ACTIVE_RANGES; ++i) {
     if (range_ids[i] == id) {
       break;
@@ -62,13 +62,13 @@ bool addr_rr(
 bool addr_rn(
   Status *const status,
   Regex *const start,
-  const int end,
-  const int id
+  const size_t end,
+  const size_t id
 ) {
-  const int line_nb = status->line_nb;
-  int *const range_ids = status->range_ids;
-  int *free_slot = NULL;
-  int i;
+  const size_t line_nb = status->line_nb;
+  size_t *const range_ids = status->range_ids;
+  size_t *free_slot = NULL;
+  size_t i;
   for (i = 0; i < MAX_ACTIVE_RANGES; ++i) {
     if (range_ids[i] == id) {
       break;
@@ -97,19 +97,19 @@ bool addr_rn(
 
 bool addr_nr(
   Status *const status,
-  const int start,
+  const size_t start,
   Regex *const end,
-  const int id
+  const size_t id
 ) {
   /*
    * Since we systematically match if line nb >= start we need to remember if we
    * reached the end address, which is the task of the suppressed array.
   */
-  const int line_nb = status->line_nb;
-  int *const range_ids = status->range_ids;
-  int *const suppressed_range_ids = status->suppressed_range_ids;
-  int *free_slot = NULL;
-  int i;
+  const size_t line_nb = status->line_nb;
+  size_t *const range_ids = status->range_ids;
+  size_t *const suppressed_range_ids = status->suppressed_range_ids;
+  size_t *free_slot = NULL;
+  size_t i;
   for (i = 0; i < MAX_ACTIVE_RANGES; ++i) {
     if (suppressed_range_ids[i] == id) {
       return false;
@@ -143,14 +143,14 @@ bool addr_nr(
 
 bool addr_nn(
   Status *const status,
-  const int start,
-  const int end,
-  const int id
+  const size_t start,
+  const size_t end,
+  const size_t id
 ) {
-  const int line_nb = status->line_nb;
-  int *const range_ids = status->range_ids;
-  int *free_slot = NULL;
-  int i;
+  const size_t line_nb = status->line_nb;
+  size_t *const range_ids = status->range_ids;
+  size_t *free_slot = NULL;
+  size_t i;
   for (i = 0; i < MAX_ACTIVE_RANGES; ++i) {
     if (range_ids[i] == id) {
       break;
@@ -194,6 +194,6 @@ bool addr_r(Status *const status, Regex *const regex) {
   return !regexec(regex_obj, pattern_space, 0, NULL, 0);
 }
 
-bool addr_n(const Status *status, const int line_nb) {
+bool addr_n(const Status *status, const size_t line_nb) {
   return status->line_nb == line_nb;
 }

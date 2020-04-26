@@ -29,8 +29,8 @@ void s(
   Status *const status,
   Regex *const regex,
   const char *const replace,
-  const int opts,
-  const int nth,
+  const size_t opts,
+  const size_t nth,
   FILE *const f
 );
 void w(const Status *const status, FILE *const f);

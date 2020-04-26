@@ -9,15 +9,15 @@
 #include "status.h"
 #include "read.h"
 
-static int expand_replace(
+static size_t expand_replace(
     char *const replace_expanded,
     const char *const pattern_space,
     const char *const replace,
     const regmatch_t *pmatch) {
-  const int replace_len = strlen(replace);
+  const size_t replace_len = strlen(replace);
   bool found_backslash = false;
-  int replace_expanded_index = 0;
-  for (int replace_index = 0; replace_index < replace_len; ++replace_index) {
+  size_t replace_expanded_index = 0;
+  for (size_t replace_index = 0; replace_index < replace_len; ++replace_index) {
     const char replace_char = replace[replace_index];
     switch (replace_char) {
       case '\\':
@@ -29,8 +29,8 @@ static int expand_replace(
         break;
       case '&':
         if (!found_backslash) {
-          const int so = pmatch[0].rm_so;
-          const int eo = pmatch[0].rm_eo;
+          const size_t so = pmatch[0].rm_so;
+          const size_t eo = pmatch[0].rm_eo;
           memmove(
             replace_expanded + replace_expanded_index,
             pattern_space + so,
@@ -53,11 +53,11 @@ static int expand_replace(
       case '9':
         if (found_backslash) {
           const char back_ref_index = replace_char - '0';
-          const int so = pmatch[back_ref_index].rm_so;
+          const size_t so = pmatch[back_ref_index].rm_so;
           if (so == -1) {
             return -1;
           }
-          const int eo = pmatch[back_ref_index].rm_eo;
+          const size_t eo = pmatch[back_ref_index].rm_eo;
           memmove(
             replace_expanded + replace_expanded_index,
             pattern_space + so,
@@ -84,12 +84,12 @@ static int expand_replace(
   return replace_expanded_index;
 }
 
-static int substitution(
+static size_t substitution(
     regex_t *const regex,
     char *pattern_space,
     const char *const replace,
-    int *const sub_nb,
-    const int nth
+    size_t *const sub_nb,
+    const size_t nth
 ) {
   regmatch_t pmatch[MAX_MATCHES];
   if (regexec(
@@ -106,17 +106,17 @@ static int substitution(
 
   (*sub_nb)++;
 
-  const int so = pmatch[0].rm_so; // start offset
+  const size_t so = pmatch[0].rm_so; // start offset
   assert(so != -1);
-  const int eo = pmatch[0].rm_eo; // end offset
+  const size_t eo = pmatch[0].rm_eo; // end offset
   if (nth > *sub_nb) {
     return eo;
   }
   char replace_expanded[PATTERN_SIZE]; // TODO abitrary size, might be too small
-  const int replace_expanded_len =
+  const size_t replace_expanded_len =
     expand_replace(replace_expanded, pattern_space, replace, pmatch);
 
-  const int pattern_space_len = strlen(pattern_space);
+  const size_t pattern_space_len = strlen(pattern_space);
   // empty match, s/^/foo/ for instance
   if (eo == 0) {
     if (*sub_nb == 1) {
@@ -137,8 +137,8 @@ static int substitution(
     return 1;
   }
 
-  int po = 0;
-  int ro = 0;
+  size_t po = 0;
+  size_t ro = 0;
 
   for (po = so; po < eo && ro < replace_expanded_len; ++po, ++ro) {
     pattern_space[po] = replace_expanded[ro];
@@ -206,8 +206,8 @@ operation_ret D(Status *const status) {
 }
 
 void equal(const Status *const status) {
-  const unsigned int line_nb = status->line_nb;
-  printf("%d\n", line_nb);
+  const size_t line_nb = status->line_nb;
+  printf("%zu\n", line_nb);
 }
 
 void g(Status *const status) {
@@ -223,7 +223,7 @@ void g(Status *const status) {
 void G(Status *status) {
   char *const pattern_space = status->pattern_space;
   const char *const hold_space = status->hold_space;
-  const int pattern_space_len = strlen(pattern_space);
+  const size_t pattern_space_len = strlen(pattern_space);
   memcpy(
     pattern_space + pattern_space_len + 1, // we'll place the \n in between
     hold_space,
@@ -245,7 +245,7 @@ void h(Status *status) {
 void H(Status *status) {
   const char *const pattern_space = status->pattern_space;
   char *const hold_space = status->hold_space;
-  const int hold_space_len = strlen(hold_space);
+  const size_t hold_space_len = strlen(hold_space);
   memcpy(
     hold_space + hold_space_len + 1, // we'll place the \n in between
     pattern_space,
@@ -268,7 +268,7 @@ operation_ret n(Status *const status) {
 
 void l(const Status *const status) {
   const char *const pattern_space = status->pattern_space;
-  for (int i = 0, fold_counter = 0; pattern_space[i]; ++i, ++fold_counter) {
+  for (size_t i = 0, fold_counter = 0; pattern_space[i]; ++i, ++fold_counter) {
     const char c = pattern_space[i];
     if (fold_counter > 80) {
       puts("\\");
@@ -322,7 +322,7 @@ void l(const Status *const status) {
 
 operation_ret N(Status *const status) {
   char *const pattern_space = status->pattern_space;
-  const int pattern_space_len = strlen(pattern_space);
+  const size_t pattern_space_len = strlen(pattern_space);
   if (!read_pattern(
         status,
         pattern_space + pattern_space_len + 1,
@@ -364,8 +364,8 @@ void s(
   Status *const status,
   Regex *const regex,
   const char *const replace,
-  const int opts,
-  const int nth,
+  const size_t opts,
+  const size_t nth,
   FILE *const f)
 {
   status->last_regex = regex;
@@ -383,8 +383,8 @@ void s(
   const bool opt_p = opts & S_OPT_P;
 
   char *pattern_space = status->pattern_space;
-  int pattern_offset = 0;
-  int sub_nb = 0;
+  size_t pattern_offset = 0;
+  size_t sub_nb = 0;
   do {
     pattern_offset = substitution(
       regex_obj,
@@ -427,8 +427,8 @@ void x(Status *const status) {
 void y(Status *const status, const char *const set1, const char *const set2) {
   char *const pattern_space = status->pattern_space;
   // Not the most efficient, might refactor this if I move to a C++ translation
-  for (int pattern_index = 0; pattern_space[pattern_index]; ++pattern_index) {
-    for (int set_index = 0; set1[set_index] && set2[set_index]; ++set_index) {
+  for (size_t pattern_index = 0; pattern_space[pattern_index]; ++pattern_index) {
+    for (size_t set_index = 0; set1[set_index] && set2[set_index]; ++set_index) {
       if (pattern_space[pattern_index] == set1[set_index]) {
         pattern_space[pattern_index] = set2[set_index];
       }

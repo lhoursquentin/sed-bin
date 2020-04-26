@@ -7,7 +7,7 @@
 #define READ_CHUNK_SIZE 512
 
 static void handle_pending_ouput(Status *const status) {
-  for (int i = 0; i < status->pending_output_counter; ++i) {
+  for (size_t i = 0; i < status->pending_output_counter; ++i) {
     const Pending_output p = status->pending_outputs[i];
     if (p.is_filepath) {
       FILE *const f = fopen(p.filepath, "r");
@@ -27,7 +27,7 @@ static void handle_pending_ouput(Status *const status) {
   status->pending_output_counter = 0;
 }
 
-bool read_pattern(Status *const status, char *const buf, const int size) {
+bool read_pattern(Status *const status, char *const buf, const size_t size) {
   handle_pending_ouput(status);
 
   if (status->last_line_addr_present &&
@@ -36,7 +36,7 @@ bool read_pattern(Status *const status, char *const buf, const int size) {
     return 0;
   }
 
-  int read_len;
+  size_t read_len;
   if (!status->last_line_addr_present || status->line_nb == 0) {
     if (!fgets(buf, size, stdin)) {
       return 0;
