@@ -88,7 +88,7 @@ static int substitution(
     regex_t *const regex,
     char *pattern_space,
     const char *const replace,
-    const int sub_nb,
+    int *const sub_nb,
     const int nth
 ) {
   regmatch_t pmatch[MAX_MATCHES];
@@ -97,15 +97,19 @@ static int substitution(
         pattern_space,
         MAX_MATCHES,
         pmatch,
-        sub_nb > 1 ? REG_NOTBOL : 0
+        *sub_nb > 0 ? REG_NOTBOL : 0
   )) {
-    return -1;
+    // Can return 0 later as well in cases like s/^//, rely on sub_nb value to
+    // check if substitution happened
+    return 0;
   }
+
+  (*sub_nb)++;
 
   const int so = pmatch[0].rm_so; // start offset
   assert(so != -1);
   const int eo = pmatch[0].rm_eo; // end offset
-  if (nth > sub_nb) {
+  if (nth > *sub_nb) {
     return eo;
   }
   char replace_expanded[PATTERN_SIZE]; // TODO abitrary size, might be too small
@@ -115,7 +119,7 @@ static int substitution(
   const int pattern_space_len = strlen(pattern_space);
   // empty match, s/^/foo/ for instance
   if (eo == 0) {
-    if (sub_nb == 1) {
+    if (*sub_nb == 1) {
       memmove(
         pattern_space + replace_expanded_len,
         pattern_space,
@@ -380,23 +384,19 @@ void s(
 
   char *pattern_space = status->pattern_space;
   int pattern_offset = 0;
-  int sub_nb = 1;
+  int sub_nb = 0;
   do {
     pattern_offset = substitution(
       regex_obj,
       pattern_space,
       replace,
-      sub_nb,
+      &sub_nb,
       nth
     );
-    if (pattern_offset == -1) {
-      break;
-    }
-    sub_nb++;
     pattern_space += pattern_offset;
-  } while ((opt_g || nth >= sub_nb) && pattern_space[0] && pattern_offset);
+  } while ((opt_g || nth > sub_nb) && pattern_space[0] && pattern_offset);
 
-  if (sub_nb > nth) {
+  if (sub_nb >= nth) {
     status->sub_success = true;
     if (opt_p) {
       puts(status->pattern_space);
