@@ -170,6 +170,8 @@ verify 's/.*/Bye/g' 'Hello World'
 verify 's/\([^ ]*\)/\1! \1/g' 'Hello World'
 verify 's/[^a]/foo/g' 'bar'
 verify 's/^a/foo/g' 'aaaa'
+verify 's/a//g' 'aaaa'
+verify 's/a//g' 'abaca'
 
 # p opt
 verify 's/foo/bar/p;d' 'padding foo padding'

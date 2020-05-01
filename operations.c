@@ -386,6 +386,7 @@ void s(
   size_t pattern_offset = 0;
   size_t sub_nb = 0;
   do {
+    const size_t initial_sub_nb = sub_nb;
     pattern_offset = substitution(
       regex_obj,
       pattern_space,
@@ -393,8 +394,14 @@ void s(
       &sub_nb,
       nth
     );
+    if (initial_sub_nb == sub_nb) {
+      break;
+    }
     pattern_space += pattern_offset;
-  } while ((opt_g || nth > sub_nb) && pattern_space[0] && pattern_offset);
+  } while (
+    (opt_g || nth > sub_nb) &&
+    pattern_space[0]
+  );
 
   if (sub_nb >= nth) {
     status->sub_success = true;
