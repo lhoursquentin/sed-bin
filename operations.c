@@ -54,16 +54,18 @@ static size_t expand_replace(
         if (found_backslash) {
           const char back_ref_index = replace_char - '0';
           const size_t so = pmatch[back_ref_index].rm_so;
-          if (so == -1) {
-            return -1;
+          // case when there is match but the capture group is empty:
+          //   echo foo | sed 's/\(x\)*foo/\1bar/'
+          // here the substitution is done but \1 is empty
+          if (so != -1) {
+            const size_t eo = pmatch[back_ref_index].rm_eo;
+            memmove(
+              replace_expanded + replace_expanded_index,
+              pattern_space + so,
+              eo
+            );
+            replace_expanded_index += eo - so;
           }
-          const size_t eo = pmatch[back_ref_index].rm_eo;
-          memmove(
-            replace_expanded + replace_expanded_index,
-            pattern_space + so,
-            eo
-          );
-          replace_expanded_index += eo - so;
           found_backslash = false;
         } else {
           replace_expanded[replace_expanded_index++] = replace_char;
