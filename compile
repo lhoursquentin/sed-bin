@@ -1,0 +1,43 @@
+#!/bin/sh
+
+usage() {
+  cat <<EOF
+usage: $basename [sed script file]
+
+Translate a sed script to C and compile the result to produce a standalone
+binary reproducing the script behavior.
+
+If no file is provided the sed code to be translated will be read from stdin.
+EOF
+
+  exit "${1-0}"
+}
+
+readonly basename="${0##*/}"
+
+for arg do
+  case "$arg" in
+    --help|-h)
+        usage
+        ;;
+      *)
+        if ! [ -e "$arg" ]; then
+          printf '%s: %s: No such file or directory\n' "$basename" "$arg"
+          usage 1
+        fi >&2
+        ;;
+  esac
+done
+
+readonly translator=./par.sed
+readonly generated_file=generated.c
+readonly bin=./sed-bin
+
+set -x
+
+cat "$@" | "$translator" > "$generated_file"
+make
+
+{ set +x; } 2> /dev/null
+
+echo Compiled sed script available: "$bin"

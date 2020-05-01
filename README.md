@@ -1,73 +1,117 @@
 # Compiling a sed script
 
 Translate **sed** to **C** and generate a binary that will have the exact same
-behavior as a sed script, basically `echo foo | sed 's/foo/bar/'` will be
+behavior as a sed script, basically `echo foo | sed s/foo/bar/` will be
 replaced by `echo foo | ./sed-bin`.
+
+# Table of contents
+
+* [Compiling a sed script](#Compiling-a-sed-script)
+* [Quick start](#Quick-start)
+  * [Setup](#Setup)
+  * [How to use](#How-to-use)
+  * [Quick step-by-step](#Quick-step-by-step)
+  * [Full walk-through with a bigger script](#Full-walk-through-with-a-bigger-script)
+* [How it works](#How-it-works)
+  * [Some generated code](#Some-generated-code)
+* [Why](#Why)
+* [Translating the translator](#Translating-the-translator)
+* [Notes](#Notes)
 
 # Quick start
 
+## Setup
 Clone the repo and move inside its directory, you'll need the usual UNIX
 core and build utils (sed, libc, C compiler, shell, make).
 
 *Note: this project is currently tested with the GNU libc (2.30), GNU sed (4.5)
 and GCC (9.2.1)*
 
-Say you want to compile the following sed script called `binary-add.sed` (see
-the `samples` directory):
+## How to use
+
+### Quick step-by-step
+
+Let's take a simple example:
+```bash
+sh$ echo foo | sed s/foo/bar/
+bar
+```
+Assuming you want to compile the statement above, you can use the small
+`compile` shell script wrapping up the C translation and compilation steps:
+```bash
+sh$ echo s/foo/bar/ | ./compile
++ cat
++ ./par.sed
++ make
+cc    -c -o sed-bin.o sed-bin.c
+cc    -c -o address.o address.c
+cc    -c -o operations.o operations.c
+cc    -c -o read.o read.c
+cc   sed-bin.o address.o operations.o read.o   -o sed-bin
+Compiled sed script available: ./sed-bin
+```
+
+Almost done, once the generated C code is compiled you can use the resulting
+`sed-bin` binary in place of `sed s/foo/bar/`:
+```bash
+sh$ echo foo | ./sed-bin
+bar
+```
+
+That's about it!
+
+### Full walk-through with a bigger script
+
+Say you want to compile the following sed script
+[samples/generate-table-of-contents](./samples/generate-table-of-contents),
+which is used to generate the table of contents of this project's README.
 
 ```sed
-s/[[:blank:]]//g
-h
-: start
-s/[01]+/+/g
-s/[01]$//g
-s/++*/+/g
-s/^+*//
-s/+*$//
-x
-s/[01]*\([01]\)+/\1+/g
-s/[01]*\([01]\)$/\1/g
+#!/bin/sed -f
 
-t reduce
-: reduce
-s/0+\([01]\)/\1/; t reduce
-s/\([01]\)+0/\1/; t reduce
+# ignore code blocks
+/^```/,//d
 
-/^$/d
+# no need to index ourselves
+/^# Table of contents/d
 
-s/1+1/0/
-t handle_carry
-
-p
-g
-b start
-
-: handle_carry
-x
-s/^/1+/
-s/+$//
-x
-b reduce
+# found header
+/^#/{
+  # save our line and first work on the actual URI
+  h
+  # strip leading blanks
+  s/^#*[[:blank:]]*//
+  s/[[:blank:]]/-/g
+  # punctuation and anything funky gets lost
+  s/[^-[:alnum:]]//g
+  # swap with hold and work on the displayed title
+  x
+  # get rid of last leading # and potential white spaces
+  s/^\(#\)*#[[:blank:]]*/\1/
+  # the remaining leading # (if any) will be used for indentation
+  s/#/  /g
+  # prepare the first half of the markdown
+  s/\( *\)\(.*\)/\1* [\2](#/
+  # append the link kept and remove the newline
+  G
+  s/\(.*\)[[:space:]]\(.*\)/\1\2)/p
+}
+d
 ```
 
-Its purpose is to compute binary additions, for instance:
+Let's use the translator [par.sed](./par.sed) which is a big sed script
+translating other sed scripts to C code, redirect the output to a file named
+`generated.c`. Another file with some declarations called `generated-init.c`
+will be created by the translator automatically. You'll need those two files to
+generate a working binary.
 
 ```sh
-sh$ echo 1+1+10+101+1 | sed -f binary-add.sed
-0
-1
-0
-1
+sh$ sed -f par.sed < samples/generate-table-of-contents > generated.c
 ```
 
-Now let's translate it to C, pass the script to the translator named `par.sed`
-and write the output to a file named `generated.c`:
-
-```sh
-sh$ sed -f par.sed < binary-add.sed > generated.c
-```
-
-Compile the generated code:
+Now we're ready to compile the generated code (you'll note that for simplicity
+and readability the generated code is mostly functions calls, the actual C code
+doing the work is not generated):
 
 ```sh
 sh$ make
@@ -82,24 +126,64 @@ A binary named `sed-bin` has been generated, it should have the exact same
 behavior as the sed script:
 
 ```sh
-sh$ echo 1+1+10+101+1 | ./sed-bin
-0
-1
-0
-1
+sh$ ./sed-bin < README.md
+* [Compiling a sed script](#Compiling-a-sed-script)
+* [Quick start](#Quick-start)
+  * [Setup](#Setup)
+  * [How to use](#How-to-use)
+  * [Quick step-by-step](#Quick-step-by-step)
+  * [Full walk-through with a bigger script](#Full-walk-through-with-a-bigger-script)
+* [How it works](#How-it-works)
+  * [Some generated code](#Some-generated-code)
+* [Why](#Why)
+* [Translating the translator](#Translating-the-translator)
+* [Notes](#Notes)
 ```
 
-That's about it!
+Some other example sed scripts are available in the [samples](./samples)
+directory:
+- [tic-tac-toe game](./samples/tic-tac-toe.sed)
+- [binary addition](./samples/binary-add.sed)
+- [par.sed (sed to C translator)](./par.sed)
 
-Here's a shorter example, compiling `s/foo/bar/`:
+# How it works
 
-```sh
-sh$ echo 's/foo/bar/' | ./par.sed > generated.c
-sh$ make
-cc    -c -o sed-bin.o sed-bin.c
-cc   sed-bin.o address.o operations.o read.o   -o sed-bin
-sh$ echo foo | ./sed-bin
-bar
+## Some generated code
+The translator [par.sed](./par.sed) (which is written in sed itself) converts
+sed commands calls to valid C code:
+
+```bash
+sh$ echo y/o/u/ | sed -f ./par.sed
+```
+
+Will output:
+
+```c
+y(&status, "o", "u");
+```
+
+The actual logic to handle `y` (and most other commands) is not generated, we
+just need to translate the sed syntax to valid C code, which here stays fairly
+readable.
+
+Let's look at one more example:
+
+```sed
+/foo/{
+  p;x
+}
+```
+
+Translates to:
+```c
+static Regex reg_1 = {.compiled = false, .str = "foo"};
+if (addr_r(&status, &reg_1))
+{
+
+p(&status);
+x(&status);
+
+}
 ```
 
 # Why
@@ -109,12 +193,14 @@ Not much practical use to this, here are some thoughts:
 - Debugging a sed script is hard, one possible way is to run `sed` in gdb,
   but this assumes some familiarity with the implementation. Here the generated
   C code is rather close to the original sed script, which should allow gdb to
-  be much easier to use (`make -B CFLAGS=-g` for symbols).
-- One might find this useful for obfuscation or maybe to limit the scope of sed?
+  be easier to use (`make -B CFLAGS=-g` for symbols).
+- Might be useful for obfuscation or maybe to limit the scope of sed? Resulting
+  binaries are usually smaller than a full `sed` binary as well.
 - Better speed? Since the generated code is specific to a script, one might
   expect it to be much faster than using `sed`, since we can skip parsing,
   walking the AST etc. I didn't do any serious measurements yet, but so far it
-  seems slightly faster than GNU sed, and much faster than busybox sed.
+  seems slightly faster than GNU sed (around 20% faster to translate the
+  translator for instance).
 
 # Translating the translator
 
@@ -148,6 +234,10 @@ translate the translator with it:
 sh$ ./sed-bin < ./par.sed | diff -s generated.c -
 Files generated.c and - are identical
 ```
+
+Generated code is identical, which means that at this point we have a standalone
+binary that is able to translate other sed scripts to C and that we no longer
+need another sed implementation as a starting point to make the translation.
 
 # Notes
 
