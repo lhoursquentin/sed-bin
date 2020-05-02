@@ -64,10 +64,13 @@ That's about it!
 
 Say you want to compile the following sed script
 [samples/generate-table-of-contents](./samples/generate-table-of-contents),
-which is used to generate the table of contents of this project's README.
+which is used to generate the table of contents of this project's README:
 
 ```sed
 #!/bin/sed -f
+
+# Generate table of contents with links for markdown files
+# Usage: sed -f <this-script> <mardown file>
 
 # ignore code blocks
 /^```/,//d
@@ -75,7 +78,7 @@ which is used to generate the table of contents of this project's README.
 # no need to index ourselves
 /^# Table of contents/d
 
-# found header
+# found heading
 /^#/{
   # save our line and first work on the actual URI
   h

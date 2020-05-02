@@ -1,12 +1,15 @@
 #!/bin/sed -f
 
+# Generate table of contents with links for markdown files
+# Usage: sed -f <this-script> <mardown file>
+
 # ignore code blocks
 /^```/,//d
 
 # no need to index ourselves
 /^# Table of contents/d
 
-# found header
+# found heading
 /^#/{
   # save our line and first work on the actual URI
   h
