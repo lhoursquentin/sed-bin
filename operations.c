@@ -29,8 +29,8 @@ static size_t expand_replace(
         break;
       case '&':
         if (!found_backslash) {
-          const size_t so = pmatch[0].rm_so;
-          const size_t eo = pmatch[0].rm_eo;
+          const regoff_t so = pmatch[0].rm_so;
+          const regoff_t eo = pmatch[0].rm_eo;
           memmove(
             replace_expanded + replace_expanded_index,
             pattern_space + so,
@@ -53,12 +53,12 @@ static size_t expand_replace(
       case '9':
         if (found_backslash) {
           const char back_ref_index = replace_char - '0';
-          const size_t so = pmatch[back_ref_index].rm_so;
+          const regoff_t so = pmatch[back_ref_index].rm_so;
           // case when there is match but the capture group is empty:
           //   echo foo | sed 's/\(x\)*foo/\1bar/'
           // here the substitution is done but \1 is empty
           if (so != -1) {
-            const size_t eo = pmatch[back_ref_index].rm_eo;
+            const regoff_t eo = pmatch[back_ref_index].rm_eo;
             memmove(
               replace_expanded + replace_expanded_index,
               pattern_space + so,
@@ -108,9 +108,9 @@ static size_t substitution(
 
   (*sub_nb)++;
 
-  const size_t so = pmatch[0].rm_so; // start offset
+  const regoff_t so = pmatch[0].rm_so; // start offset
   assert(so != -1);
-  const size_t eo = pmatch[0].rm_eo; // end offset
+  const regoff_t eo = pmatch[0].rm_eo; // end offset
   if (nth > *sub_nb) {
     return eo;
   }
@@ -374,11 +374,8 @@ void s(
   regex_t *const regex_obj = &regex->obj;
 
   if (!regex->compiled) {
-    if (regcomp(regex_obj, regex->str, 0)) {
-      assert(false);
-    } else {
-      regex->compiled = true;
-    }
+    assert(regcomp(regex_obj, regex->str, 0) == 0);
+    regex->compiled = true;
   }
 
   const bool opt_g = opts & S_OPT_G;

@@ -20,16 +20,12 @@ static FILE *open_file(
     if (open_file_paths[i] == filepath) {
       return open_file_handles[i];
     }
-    if (i == MAX_WFILES) {
-      // No opened file and maxed out opened file capacity
-      assert(false);
-    }
+    // No opened file and maxed out opened file capacity
+    assert(i < MAX_WFILES);
   }
   open_file_paths[i] = filepath;
   FILE *const file_handle = fopen(filepath, "w");
-  if (file_handle == NULL) {
-    assert(false);
-  }
+  assert(file_handle);
   open_file_handles[i] = file_handle;
   return file_handle;
 }

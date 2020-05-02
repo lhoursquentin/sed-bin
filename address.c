@@ -182,11 +182,8 @@ bool addr_r(Status *const status, Regex *const regex) {
   regex_t *const regex_obj = &regex->obj;
 
   if (!regex->compiled) {
-    if (regcomp(regex_obj, regex->str, 0)) {
-      assert(false);
-    } else {
-      regex->compiled = true;
-    }
+    assert(regcomp(regex_obj, regex->str, 0) == 0);
+    regex->compiled = true;
   }
 
   const char *const pattern_space = status->pattern_space;
