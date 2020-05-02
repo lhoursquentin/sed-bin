@@ -26,42 +26,9 @@
  * we went over.
 */
 
-bool addr_rr(
+bool addr_nn(
   Status *const status,
-  Regex *const start,
-  Regex *const end,
-  const size_t id
-) {
-  size_t *const range_ids = status->range_ids;
-  size_t *free_slot = NULL;
-  size_t i;
-  for (i = 0; i < MAX_ACTIVE_RANGES; ++i) {
-    if (range_ids[i] == id) {
-      break;
-    } else if (free_slot == NULL && range_ids[i] == 0) {
-      free_slot = range_ids + i;
-    }
-  }
-  if (i == MAX_ACTIVE_RANGES) {
-    // Could not find active range, let's check if we can start a new one
-    if (addr_r(status, start)) {
-      assert(free_slot);
-      *free_slot = id;
-      return true;
-    }
-  } else {
-    // inside active range, need to check if we can free it.
-    if (addr_r(status, end)) {
-      range_ids[i] = 0;
-    }
-    return true;
-  }
-  return false;
-}
-
-bool addr_rn(
-  Status *const status,
-  Regex *const start,
+  const size_t start,
   const size_t end,
   const size_t id
 ) {
@@ -78,7 +45,7 @@ bool addr_rn(
   }
   if (i == MAX_ACTIVE_RANGES) {
     // Could not find active range, let's check if we can start a new one
-    if (addr_r(status, start)) {
+    if (line_nb == start || (line_nb >= start && line_nb <= end)) {
       if (line_nb < end) {
         assert(free_slot);
         *free_slot = id;
@@ -141,9 +108,9 @@ bool addr_nr(
   return false;
 }
 
-bool addr_nn(
+bool addr_rn(
   Status *const status,
-  const size_t start,
+  Regex *const start,
   const size_t end,
   const size_t id
 ) {
@@ -160,7 +127,7 @@ bool addr_nn(
   }
   if (i == MAX_ACTIVE_RANGES) {
     // Could not find active range, let's check if we can start a new one
-    if (line_nb == start || (line_nb >= start && line_nb <= end)) {
+    if (addr_r(status, start)) {
       if (line_nb < end) {
         assert(free_slot);
         *free_slot = id;
@@ -177,6 +144,43 @@ bool addr_nn(
   return false;
 }
 
+bool addr_rr(
+  Status *const status,
+  Regex *const start,
+  Regex *const end,
+  const size_t id
+) {
+  size_t *const range_ids = status->range_ids;
+  size_t *free_slot = NULL;
+  size_t i;
+  for (i = 0; i < MAX_ACTIVE_RANGES; ++i) {
+    if (range_ids[i] == id) {
+      break;
+    } else if (free_slot == NULL && range_ids[i] == 0) {
+      free_slot = range_ids + i;
+    }
+  }
+  if (i == MAX_ACTIVE_RANGES) {
+    // Could not find active range, let's check if we can start a new one
+    if (addr_r(status, start)) {
+      assert(free_slot);
+      *free_slot = id;
+      return true;
+    }
+  } else {
+    // inside active range, need to check if we can free it.
+    if (addr_r(status, end)) {
+      range_ids[i] = 0;
+    }
+    return true;
+  }
+  return false;
+}
+
+bool addr_n(const Status *status, const size_t line_nb) {
+  return status->line_nb == line_nb;
+}
+
 bool addr_r(Status *const status, Regex *const regex) {
   status->last_regex = regex;
   regex_t *const regex_obj = &regex->obj;
@@ -189,8 +193,4 @@ bool addr_r(Status *const status, Regex *const regex) {
   const char *const pattern_space = status->pattern_space;
 
   return !regexec(regex_obj, pattern_space, 0, NULL, 0);
-}
-
-bool addr_n(const Status *status, const size_t line_nb) {
-  return status->line_nb == line_nb;
 }

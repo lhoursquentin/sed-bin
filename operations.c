@@ -6,14 +6,15 @@
 #include <string.h>
 
 #include "operations.h"
-#include "status.h"
 #include "read.h"
+#include "status.h"
 
 static size_t expand_replace(
-    char *const replace_expanded,
-    const char *const pattern_space,
-    const char *const replace,
-    const regmatch_t *pmatch) {
+  char *const replace_expanded,
+  const char *const pattern_space,
+  const char *const replace,
+  const regmatch_t *pmatch
+) {
   const size_t replace_len = strlen(replace);
   bool found_backslash = false;
   size_t replace_expanded_index = 0;
@@ -87,11 +88,11 @@ static size_t expand_replace(
 }
 
 static size_t substitution(
-    regex_t *const regex,
-    char *pattern_space,
-    const char *const replace,
-    size_t *const sub_nb,
-    const size_t nth
+  regex_t *const regex,
+  char *pattern_space,
+  const char *const replace,
+  size_t *const sub_nb,
+  const size_t nth
 ) {
   regmatch_t pmatch[MAX_MATCHES];
   if (regexec(
@@ -368,8 +369,8 @@ void s(
   const char *const replace,
   const size_t opts,
   const size_t nth,
-  FILE *const f)
-{
+  FILE *const f
+) {
   status->last_regex = regex;
   regex_t *const regex_obj = &regex->obj;
 

@@ -13,7 +13,6 @@ typedef enum {
 } operation_ret;
 
 #include <stdbool.h>
-#include <regex.h>
 
 typedef struct {
   bool is_filepath;
@@ -22,6 +21,8 @@ typedef struct {
     const char *filepath; // resulting from r cmd
   };
 } Pending_output;
+
+#include <regex.h>
 
 typedef struct {
   bool compiled;
