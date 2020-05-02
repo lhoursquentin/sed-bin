@@ -46,6 +46,7 @@ typedef struct {
   size_t pending_output_counter;
   char *const next_line;
   bool last_line_addr_present;
+  bool suppress_default_output;
 } Status;
 
 #endif /* STATUS_H */

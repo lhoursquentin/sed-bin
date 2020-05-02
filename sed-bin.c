@@ -45,7 +45,13 @@ int main(int argc, char **argv) {
     .pending_output_counter = 0,
     .next_line = (char[PATTERN_SIZE]){},
     .last_line_addr_present = false,
+    .suppress_default_output = false,
   };
+
+  if (argc > 1) {
+    assert(strcmp(argv[1], "-n") == 0 && argc == 2);
+    status.suppress_default_output = true;
+  }
 
   const char *open_file_paths[MAX_WFILES];
   FILE *open_file_handles[MAX_WFILES];
@@ -60,7 +66,9 @@ int main(int argc, char **argv) {
     }
     status.skip_read = false;
     #include "generated.c"
-    puts(status.pattern_space);
+    if (!status.suppress_default_output) {
+      puts(status.pattern_space);
+    }
   }
   return EXIT_SUCCESS;
 }

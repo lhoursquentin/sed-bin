@@ -242,7 +242,6 @@ need another sed implementation as a starting point to make the translation.
 # Notes
 
 - Missing/incomplete features (supporting/fixing those is planned):
-  - leading `#n` marker is not handled
   - with 2 addresses, the `c` command will be executed every time for each
   matching line instead of only once when leaving the range.
 
@@ -254,8 +253,12 @@ need another sed implementation as a starting point to make the translation.
   try to see what is not supported by running your script with the `--posix`
   option. Also check out the [POSIX specification](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/sed.html).
 
-- It is assumed no options are passed to `sed` (`-n` is a common option for
-  instance), supporting those is not planned for the moment.
+- Only `-n` (suppress the default output) is accepted as a command line
+  argument of the resulting binary.
+
+- The generated binaries currently only accept data from stdin:
+  `./sed-bin < file` not `./sed-bin file`. If you have multiple files use
+  `cat file1 file2 file3 | ./sed-bin`.
 
 - There are some bugs, the C code is very rough around the edges (by that I mean
   dirty and unsafe, for instance allocating everything on the stack without

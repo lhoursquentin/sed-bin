@@ -262,7 +262,9 @@ void i(const char *const output) {
 }
 
 operation_ret n(Status *const status) {
-  puts(status->pattern_space);
+  if (!status->suppress_default_output) {
+    puts(status->pattern_space);
+  }
   if (!read_pattern(status, status->pattern_space, PATTERN_SIZE)) {
     return BREAK;
   }
@@ -352,7 +354,9 @@ void P(const Status *const status) {
 }
 
 void q(const Status *const status) {
-  p(status);
+  if (!status->suppress_default_output) {
+    p(status);
+  }
   exit(0);
 }
 

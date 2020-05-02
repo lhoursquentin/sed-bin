@@ -117,18 +117,20 @@ compile_translator() {
 equal_output() {
   echo --------------------------
 
-  printf '%s\n' "$input" | $sed_implementation "$sed_code" > "$expected_output" &&
+  printf '%s\n' "$input" | $sed_implementation $n_opt "$sed_code" > "$expected_output" &&
   printf '%s\n' "$sed_code" | "$translator" > "$generated_file" &&
   make -s &&
-  printf '%s\n' "$input" | "$bin" > "$bin_generated_file_output" &&
+  printf '%s\n' "$input" | "$bin" $n_opt > "$bin_generated_file_output" &&
   diff --side-by-side "$expected_output" "$bin_generated_file_output"
 }
 
 verify() {
   sed_code="$1"
   input="$2"
-
+  n_opt=
   assert_true equal_output "$sed_code" -- "input: $input"
+  n_opt=-n
+  assert_true equal_output "$n_opt" "$sed_code" -- "input: $input"
   echo ==========================
 }
 
@@ -496,8 +498,28 @@ verify 's/^/x/; /foo/w '"$test_file"'
 s/^/y/; r '"$test_file"'
 s/^/z/' 'foo'
 
+rm "$test_file"
+
 verify 's/^$/x/' ''
 
-rm "$test_file"
+# #n
+verify '#n' 'foo'
+verify '#no output' 'foo'
+verify '#n
+s/^/x/' 'foo
+bar'
+verify '#n
+n
+s/^/x/' 'foo
+bar'
+verify '#n
+q' 'foo
+bar'
+verify '#n
+b' 'foo
+bar'
+verify '#n
+t' 'foo
+bar'
 
 end_tests

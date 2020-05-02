@@ -13,6 +13,10 @@
 0\
 0/
   x
+  /^#n/{
+    s/.*/status.suppress_default_output = true;/w generated-init.c
+    d
+  }
 }
 
 : start
@@ -51,7 +55,7 @@ s|^#|//|; t comment
 /
   t label_cmds
 
-  s/./&{ puts(status.pattern_space); continue; }\
+  s/./&{ if (!status.suppress_default_output) puts(status.pattern_space); continue; }\
 /
   s/^t/&if (status.sub_success) /
   s/.//
