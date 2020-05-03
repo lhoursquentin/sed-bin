@@ -22,7 +22,7 @@
 : start
 
 # remove ; and spaces
-s/^[; ][; ]*//g
+s/^[;[:blank:]][;[:blank:]]*//g
 t start
 
 # If empty line, read the next one

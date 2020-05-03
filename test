@@ -503,6 +503,9 @@ rm "$test_file"
 
 verify 's/^$/x/' ''
 
+# tabs as a separator
+verify '	/f/	s/foo/bar/;	p' 'foo'
+
 # #n
 verify '#n' 'foo'
 verify '#no output' 'foo'
