@@ -2,7 +2,7 @@
 #define STATUS_H
 
 #define PATTERN_SIZE 8192
-#define MAX_MATCHES 9
+#define MAX_MATCHES 10
 #define MAX_ACTIVE_RANGES 100
 #define MAX_PENDING_OUTPUT 100
 #define MAX_WFILES 10

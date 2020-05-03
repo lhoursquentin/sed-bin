@@ -166,6 +166,7 @@ verify 's/\(x\)*foo/b\1ar/' 'foo'
 verify 's/\(x\)*foo/b\1ar/' 'xfoo'
 verify 's/\(x\)*foo/b\1ar/' 'xxfoo'
 verify 's/\(x\)*foo/\1/' 'foo'
+verify 's/\(.\)\(.\)\(.\)\(.\)\(.\)\(.\)\(.\)\(.\)\(.\)/\1\2\3\4\5\6\7\8\9/' '123456789'
 # g opt
 verify 's/o/a/g' 'Hello World'
 verify 's/o/abocde/g' 'Hello World'
