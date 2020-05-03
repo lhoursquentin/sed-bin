@@ -526,4 +526,19 @@ verify '#n
 t' 'foo
 bar'
 
+# BRE ranges
+verify 's/[/]/x/g' 'a/b/c'
+verify 's/a/[\n]/g' 'a/b/c'
+verify 's/[x/y]/[xy]/g' 'a/b/c'
+verify 'N;N;s/\na[\n]b\n/yo/g' '
+anb
+
+'
+# With GNU sed not in POSIX mode [\n] means newline, whereas in POSIX mode
+# this means either backslash or n, we'll follow POSIX mode behavior.
+verify 'y/[/]/' '[[]]'
+verify '/[/]/s/[/]/yo/' '/'
+verify 's/hey/[/' 'hey'
+verify 's/[\n[:blank:]\n]/foo/g' 'n \ n \ n'
+
 end_tests

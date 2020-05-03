@@ -242,8 +242,8 @@ x
 
 : regex_eat_next
 
-# Case where we only have our delimiter on the line, meaning there's a newline
-# in the s command
+# Case where we only have our delimiter and a backslash on the line, meaning
+# there's a newline in the s command
 /^.\\$/{
   # remove escape
   s/\\$//
@@ -257,6 +257,33 @@ x
   t regex_eat_next
 }
 
+x
+/^\[/{
+  x
+  s/^\(.\)\(\[:[[:alpha:]][[:alpha:]]*:]\)/\2\
+\1/
+  t regex_save_char
+  /^\(.\)]/{
+    s//]\
+\1/
+    x
+    # found end of range, remove our hold mark
+    s/\[//
+    x
+    t regex_save_char
+  }
+  # Literal double quotes and backslashes must be escaped in the C code
+  s/^\(.\)\([\"]\)/\\\2\
+\1/
+  t regex_save_char
+  # any char in a range is litteral
+  s/^\(.\)\(.\)/\2\
+\1/
+  t regex_save_char
+}
+x
+
+# Found our delimiter
 /^\(.\)\1/{
   s//\1/
   x
@@ -264,6 +291,29 @@ x
   t regex_valid_delim_eaten
 }
 
+x
+# [] ranges are only relevant for BREs
+/^[rs][^1]/{
+  x
+  s/^\(.\)\\\[/\\\\[\
+\1/
+  t regex_save_char
+  /^.\[/{
+    # special case of leading closing bracket in range
+    s/^\(.\)\[]/[]\
+\1/
+    s/^\(.\)\[/[\
+\1/
+    # found range, save this char at the top of the hold to remember to treat
+    # every character literally
+    x
+    s/^/[/
+    x
+    t regex_save_char
+  }
+  x
+}
+x
 # case of escaped delimiter s/bin\/bash/bin\/sh/, in that case we just remove
 # the backslash and process the char as any non delimiter one.
 s/^\(.\)\\\1/\1\
