@@ -540,5 +540,7 @@ verify 'y/[/]/' '[[]]'
 verify '/[/]/s/[/]/yo/' '/'
 verify 's/hey/[/' 'hey'
 verify 's/[\n[:blank:]\n]/foo/g' 'n \ n \ n'
+verify 's/\[/]foo/' 'a[b'
+verify 's/[[:blank:]/]/foo/g' 'a/b c'
 
 end_tests
