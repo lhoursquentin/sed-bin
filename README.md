@@ -16,6 +16,7 @@ replaced by `echo foo | ./sed-bin`.
   * [Some generated code](#Some-generated-code)
 * [Why](#Why)
 * [Translating the translator](#Translating-the-translator)
+* [Using this project as a sed alternative](#Using-this-project-as-a-sed-alternative)
 * [Notes](#Notes)
 
 # Quick start
@@ -140,6 +141,7 @@ sh$ ./sed-bin < README.md
   * [Some generated code](#Some-generated-code)
 * [Why](#Why)
 * [Translating the translator](#Translating-the-translator)
+* [Using this project as a sed alternative](#Using-this-project-as-a-sed-alternative)
 * [Notes](#Notes)
 ```
 
@@ -241,6 +243,37 @@ Files generated.c and - are identical
 Generated code is identical, which means that at this point we have a standalone
 binary that is able to translate other sed scripts to C and that we no longer
 need another sed implementation as a starting point to make the translation.
+
+# Using this project as a sed alternative
+
+A shell script named `sed` is available, providing the same interface as a POSIX
+sed implementation.
+
+It automates argument parsing, translation, compilation and execution of the
+resulting binary. On one hand this is much heavier than the usual sed
+implementation, but on the other hand it provides an easy way to quickly test
+and compare this project with other implementations.
+
+The default translation is done with the `./par.sed` translator script, which
+will use the default `sed` binary available on the system, to get rid of this
+initial sed dependency simply translate and compile `par.sed`, save the
+generated binary and then use this `sed` shell script with `SED_TRANSLATOR`
+environmnent variable.
+
+For example:
+
+```sh
+sh$ ./compile ./par.sed
++ cat ./par.sed
++ ./par.sed
++ make
+cc    -c -o sed-bin.o sed-bin.c
+cc   sed-bin.o address.o operations.o read.o   -o sed-bin
+Compiled sed script available: ./sed-bin
+sh$ mv sed-bin compiled-translator
+sh$ echo foo | SED_TRANSLATOR=./compiled-translator ./sed 's/foo/bar/'
+bar
+```
 
 # Notes
 
