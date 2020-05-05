@@ -65,7 +65,7 @@ That's about it!
 ### Full walk-through with a bigger script
 
 Say you want to compile the following sed script
-[samples/generate-table-of-contents](./samples/generate-table-of-contents),
+[samples/generate-table-of-contents.sed](./samples/generate-table-of-contents.sed),
 which is used to generate the table of contents of this project's README:
 
 ```sed
@@ -111,7 +111,7 @@ will be created by the translator automatically. You'll need those two files to
 generate a working binary.
 
 ```sh
-sh$ sed -f par.sed < samples/generate-table-of-contents > generated.c
+sh$ sed -f par.sed < samples/generate-table-of-contents.sed > generated.c
 ```
 
 Now we're ready to compile the generated code (you'll note that for simplicity
@@ -151,8 +151,9 @@ sh$ ./sed-bin < README.md
 
 Some example sed scripts are available in the [samples](./samples) directory:
 
-- [samples/tic-tac-toe game](./samples/tic-tac-toe.sed)
-- [samples/binary addition](./samples/binary-add.sed)
+- [samples/binary-add.sed](./samples/binary-add.sed)
+- [samples/generate-table-of-contents.sed](./samples/generate-table-of-contents.sed)
+- [samples/tic-tac-toe.sed](./samples/tic-tac-toe.sed)
 - [par.sed (sed to C translator)](./par.sed)
 
 Other notable sed scripts tested with this project:

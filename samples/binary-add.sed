@@ -1,3 +1,15 @@
+#!/bin/sed -f
+
+# Example usage:
+# sh$ $ echo 1 + 10 + 0 + 11  | sed -f ./samples/binary-add.sed
+# 0
+# 1
+# 1
+
+# bc version:
+# sh$ echo 'ibase=2; obase=2; 1 + 10 + 0 + 11' | bc
+# 110
+
 s/[[:blank:]]//g
 h
 : start
