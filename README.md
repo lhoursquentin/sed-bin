@@ -12,6 +12,7 @@ replaced by `echo foo | ./sed-bin`.
   * [How to use](#How-to-use)
   * [Quick step-by-step](#Quick-step-by-step)
   * [Full walk-through with a bigger script](#Full-walk-through-with-a-bigger-script)
+* [Sample scripts](#Sample-scripts)
 * [How it works](#How-it-works)
   * [Some generated code](#Some-generated-code)
 * [Why](#Why)
@@ -137,6 +138,7 @@ sh$ ./sed-bin < README.md
   * [How to use](#How-to-use)
   * [Quick step-by-step](#Quick-step-by-step)
   * [Full walk-through with a bigger script](#Full-walk-through-with-a-bigger-script)
+* [Sample scripts](#Sample-scripts)
 * [How it works](#How-it-works)
   * [Some generated code](#Some-generated-code)
 * [Why](#Why)
@@ -145,11 +147,21 @@ sh$ ./sed-bin < README.md
 * [Notes](#Notes)
 ```
 
-Some other example sed scripts are available in the [samples](./samples)
-directory:
-- [tic-tac-toe game](./samples/tic-tac-toe.sed)
-- [binary addition](./samples/binary-add.sed)
+# Sample scripts
+
+Some example sed scripts are available in the [samples](./samples) directory:
+
+- [samples/tic-tac-toe game](./samples/tic-tac-toe.sed)
+- [samples/binary addition](./samples/binary-add.sed)
 - [par.sed (sed to C translator)](./par.sed)
+
+Other notable sed scripts tested with this project:
+
+- [dc.sed](http://sed.sourceforge.net/grabbag/scripts/dc.sed), an arbitrary
+  precision reverse polish notation calculator written by Greg Ubben
+- [sokoban.sed](https://github.com/aureliojargas/sokoban.sed), a
+  [sokoban](https://en.wikipedia.org/wiki/Sokoban) game written by Aurelio
+  Jargas
 
 # How it works
 
@@ -257,8 +269,8 @@ and compare this project with other implementations.
 The default translation is done with the `./par.sed` translator script, which
 will use the default `sed` binary available on the system, to get rid of this
 initial sed dependency simply translate and compile `par.sed`, save the
-generated binary and then use this `sed` shell script with `SED_TRANSLATOR`
-environmnent variable.
+generated binary and then use the `sed` shell script with `SED_TRANSLATOR`
+environment variable set to the newly created binary.
 
 For example:
 
