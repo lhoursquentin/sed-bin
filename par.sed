@@ -299,8 +299,11 @@ x
 \1/
   t regex_save_char
   /^.\[/{
-    # special case of leading closing bracket in range
+    # special case of leading closing square bracket in range: []...]
     s/^\(.\)\[]/[]\
+\1/
+    # special case of negative leading closing square bracket in range: [^]...]
+    s/^\(.\)\[^]/[^]\
 \1/
     s/^\(.\)\[/[\
 \1/
