@@ -4,7 +4,7 @@
 # Usage: sed -f <this-script> <mardown file>
 
 # ignore code blocks
-/^```/,//d
+/^```/,/^```/d
 
 # no need to index ourselves
 /^# Table of contents/d

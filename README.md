@@ -1,12 +1,13 @@
-# Compiling a sed script
+# sed-bin: Compile a sed script
 
-Translate **sed** to **C** and generate a binary that will have the exact same
-behavior as a sed script, basically `echo foo | sed s/foo/bar/` will be
-replaced by `echo foo | ./sed-bin`.
+This project allows to translate **sed** to **C** to be able to compile the
+result and generate a binary that will have the exact same behavior as the
+original sed script, for example `echo foo | sed s/foo/bar/` will be replaced
+by `echo foo | ./sed-bin`.
 
 # Table of contents
 
-* [Compiling a sed script](#Compiling-a-sed-script)
+* [sed-bin: Compile a sed script](#sed-bin-Compile-a-sed-script)
 * [Quick start](#Quick-start)
   * [Setup](#Setup)
   * [How to use](#How-to-use)
@@ -26,8 +27,8 @@ replaced by `echo foo | ./sed-bin`.
 Clone the repo and move inside its directory, you'll need the usual UNIX
 core and build utils (sed, libc, C compiler, shell, make).
 
-*Note: this project is currently tested with the GNU libc (2.30), GNU sed (4.5)
-and GCC (9.2.1)*
+*Note: this project is currently tested with the GNU libc (2.31), GNU sed (4.5)
+and GCC (10.1.1)*
 
 ## How to use
 
@@ -38,8 +39,10 @@ Let's take a simple example:
 sh$ echo foo | sed s/foo/bar/
 bar
 ```
-Assuming you want to compile the statement above, you can use the small
-`compile` shell script wrapping up the C translation and compilation steps:
+Assuming you want to compile `s/foo/bar/`:
+
+- Use the provided [compile](./compile) shell script, this takes care of the C
+  translation and compilation steps:
 ```bash
 sh$ echo s/foo/bar/ | ./compile
 + cat
@@ -53,8 +56,8 @@ cc   sed-bin.o address.o operations.o read.o   -o sed-bin
 Compiled sed script available: ./sed-bin
 ```
 
-Almost done, once the generated C code is compiled you can use the resulting
-`sed-bin` binary in place of `sed s/foo/bar/`:
+- Once the generated C code is compiled, you can use the resulting `sed-bin`
+  binary in place of `sed s/foo/bar/`:
 ```bash
 sh$ echo foo | ./sed-bin
 bar
@@ -64,9 +67,9 @@ That's about it!
 
 ### Full walk-through with a bigger script
 
-Say you want to compile the following sed script
-[samples/generate-table-of-contents.sed](./samples/generate-table-of-contents.sed),
-which is used to generate the table of contents of this project's README:
+Say you want to compile the following sed script which is used to generate the
+table of contents of this project's README (can also be found in the [samples
+directory](./samples)):
 
 ```sed
 #!/bin/sed -f
@@ -75,7 +78,7 @@ which is used to generate the table of contents of this project's README:
 # Usage: sed -f <this-script> <mardown file>
 
 # ignore code blocks
-/^```/,//d
+/^```/,/^```/d
 
 # no need to index ourselves
 /^# Table of contents/d
@@ -104,19 +107,20 @@ which is used to generate the table of contents of this project's README:
 d
 ```
 
-Let's use the translator [par.sed](./par.sed) which is a big sed script
-translating other sed scripts to C code, redirect the output to a file named
-`generated.c`. Another file with some declarations called `generated-init.c`
-will be created by the translator automatically. You'll need those two files to
-generate a working binary.
+Let's use the provided translator [par.sed](./par.sed) which is a big sed
+script translating other sed scripts to C code. Redirect the output to a file
+named `generated.c`. Another file with some declarations called
+`generated-init.c` will be created by the translator automatically. You'll need
+those two files to generate a working binary.
 
 ```sh
 sh$ sed -f par.sed < samples/generate-table-of-contents.sed > generated.c
 ```
 
-Now we're ready to compile the generated code (you'll note that for simplicity
-and readability the generated code is mostly functions calls, the actual C code
-doing the work is not generated):
+If you take a peek at `generated.c`, you'll note that for simplicity and
+readability the generated code is mostly functions calls, the actual C code
+doing the work is not generated but mostly found in
+[operations.c](./operations.c). Now we're ready to compile the generated code:
 
 ```sh
 sh$ make
@@ -132,7 +136,7 @@ behavior as the sed script:
 
 ```sh
 sh$ ./sed-bin < README.md
-* [Compiling a sed script](#Compiling-a-sed-script)
+* [sed-bin: Compile a sed script](#sed-bin-Compile-a-sed-script)
 * [Quick start](#Quick-start)
   * [Setup](#Setup)
   * [How to use](#How-to-use)
@@ -158,11 +162,13 @@ Some example sed scripts are available in the [samples](./samples) directory:
 
 Other notable sed scripts tested with this project:
 
-- [dc.sed](http://sed.sourceforge.net/grabbag/scripts/dc.sed), an arbitrary
-  precision reverse polish notation calculator written by Greg Ubben
 - [sokoban.sed](https://github.com/aureliojargas/sokoban.sed), a
   [sokoban](https://en.wikipedia.org/wiki/Sokoban) game written by Aurelio
   Jargas
+- [dc.sed](http://sed.sourceforge.net/grabbag/scripts/dc.sed), an arbitrary
+  precision reverse polish notation calculator written by Greg Ubben (to make
+  it work the `break` label needs to be renamed to avoid conflicting with the C
+  keyword)
 
 # How it works
 
@@ -226,8 +232,8 @@ The basic idea of this project is to translate **sed** code to **C** code, to
 compile it and have a resulting binary with the same behavior as the original
 script.
 
-Now since the translator from sed to C is written in sed, we should be able to
-translate the translator, compile it and then be able to use the compiled
+Now, since the translator from sed to C is written in sed, we should be able to
+translate the translator, compile it, and then be able to use the compiled
 version to translate other sed scripts.
 
 Translate the translator (`par.sed`) with itself:
@@ -253,25 +259,33 @@ sh$ ./sed-bin < ./par.sed | diff -s generated.c -
 Files generated.c and - are identical
 ```
 
-Generated code is identical, which means that at this point we have a standalone
-binary that is able to translate other sed scripts to C and that we no longer
-need another sed implementation as a starting point to make the translation.
+Generated code is identical, which means that at this point we have a
+standalone binary that is able to translate other sed scripts to C. We no
+longer need another sed implementation as a starting point to make the
+translation.
 
 # Using this project as a sed alternative
 
-A shell script named `sed` is available, providing the same interface as a POSIX
-sed implementation.
+A shell script named [sed](./sed) is available in this repository, providing
+the same interface as a POSIX sed implementation.
 
-It automates argument parsing, translation, compilation and execution of the
-resulting binary. On one hand this is much heavier than the usual sed
+```sh
+sh$ echo foo | ./sed s/foo/bar/
+bar
+```
+
+Here `./sed` automates argument parsing, translation, compilation and execution
+of the resulting binary. On one hand this is much heavier than the usual sed
 implementation, but on the other hand it provides an easy way to quickly test
 and compare this project with other implementations.
 
 The default translation is done with the `./par.sed` translator script, which
-will use the default `sed` binary available on the system, to get rid of this
-initial sed dependency simply translate and compile `par.sed`, save the
-generated binary and then use the `sed` shell script with `SED_TRANSLATOR`
-environment variable set to the newly created binary.
+will use the default **sed** binary available on the system. So that means we
+need to use a full **sed** implementation to provide another **sed**
+implementation which doesn't make much sense. To get rid of this initial
+**sed** dependency simply translate and compile `par.sed`, save the generated
+binary and then use the **sed** shell script with `SED_TRANSLATOR` environment
+variable set to the newly created binary.
 
 For example:
 
@@ -312,4 +326,4 @@ bar
 - There are some bugs, the C code is very rough around the edges (by that I mean
   dirty and unsafe, for instance allocating everything on the stack without
   checking any overflow), I'm still working on it, but contributions
-  (issues/comments/pull requests) are also welcomed.
+  (issues/comments/pull requests) are also welcomed :)
