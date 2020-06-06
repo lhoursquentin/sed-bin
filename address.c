@@ -16,9 +16,9 @@
  *
  * The current implementation only uses a suppress list in the <line-nb>,/regex/
  * address because it's the only way to make it work for this, I feel like for
- * the other combinations it makes more sense to allow rematching, even if it is
- * less consistent. Implicitely /regex/,/regex/ will never match twice in the
- * end case as well.
+ * the other combinations it makes more sense to allow to match again, even if
+ * it is less consistent. Implicitly /regex/,/regex/ will never match twice in
+ * the end case as well.
  *
  * Should a range number end once it is equal (similarly to regex addresses) or
  * once it goes over? What should 2!{1,2=} print for line 3,4,5... of input?
@@ -177,7 +177,7 @@ bool addr_rr(
   return false;
 }
 
-bool addr_n(const Status *status, const size_t line_nb) {
+bool addr_n(const Status *const status, const size_t line_nb) {
   return status->line_nb == line_nb;
 }
 

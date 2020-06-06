@@ -115,7 +115,8 @@ static size_t substitution(
   if (nth > *sub_nb) {
     return eo;
   }
-  char replace_expanded[PATTERN_SIZE]; // TODO abitrary size, might be too small
+  // TODO arbitrary size, might be too small
+  char replace_expanded[PATTERN_SIZE];
   const size_t replace_expanded_len =
     expand_replace(replace_expanded, pattern_space, replace, pmatch);
 
@@ -261,16 +262,6 @@ void i(const char *const output) {
   puts(output);
 }
 
-operation_ret n(Status *const status) {
-  if (!status->suppress_default_output) {
-    puts(status->pattern_space);
-  }
-  if (!read_pattern(status, status->pattern_space, PATTERN_SIZE)) {
-    return BREAK;
-  }
-  return 0;
-}
-
 void l(const Status *const status) {
   const char *const pattern_space = status->pattern_space;
   for (size_t i = 0, fold_counter = 0; pattern_space[i]; ++i, ++fold_counter) {
@@ -323,6 +314,16 @@ void l(const Status *const status) {
     }
   }
   puts("$");
+}
+
+operation_ret n(Status *const status) {
+  if (!status->suppress_default_output) {
+    puts(status->pattern_space);
+  }
+  if (!read_pattern(status, status->pattern_space, PATTERN_SIZE)) {
+    return BREAK;
+  }
+  return 0;
 }
 
 operation_ret N(Status *const status) {
