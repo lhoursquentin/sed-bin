@@ -27,39 +27,13 @@
 */
 
 bool addr_nn(
-  Status *const status,
+  const Status *const status,
   const size_t start,
-  const size_t end,
-  const size_t id
+  const size_t end
 ) {
   const size_t line_nb = status->line_nb;
-  size_t *const range_ids = status->range_ids;
-  size_t *free_slot = NULL;
-  size_t i;
-  for (i = 0; i < MAX_ACTIVE_RANGES; ++i) {
-    if (range_ids[i] == id) {
-      break;
-    } else if (free_slot == NULL && range_ids[i] == 0) {
-      free_slot = range_ids + i;
-    }
-  }
-  if (i == MAX_ACTIVE_RANGES) {
-    // Could not find active range, let's check if we can start a new one
-    if (line_nb == start || (line_nb >= start && line_nb <= end)) {
-      if (line_nb < end) {
-        assert(free_slot);
-        *free_slot = id;
-      }
-      return true;
-    }
-  } else {
-    // inside active range, need to check if we can free it.
-    if (line_nb >= end) {
-      range_ids[i] = 0;
-    }
-    return line_nb <= end;
-  }
-  return false;
+  return (line_nb >= start && line_nb <= end)
+    || line_nb == start; // covers start > end
 }
 
 bool addr_nr(

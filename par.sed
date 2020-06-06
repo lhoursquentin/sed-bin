@@ -529,7 +529,9 @@ b valid_s_or_addr_parsing
   # guarantee that we'll never generate two range calls on the same line, that's
   # why using the "=" command is not an option)
   /^.[rn]/{
-    s/$/, __LINE__/
+    # number,number ranges do not need an id since the line number is fixed
+    # during each whole cycle
+    /^nn/!s/$/, __LINE__/
     t s_or_addr_close_function
   }
   # single address, we need to check if another one follows
