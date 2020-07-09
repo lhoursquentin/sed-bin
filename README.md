@@ -28,7 +28,7 @@ Clone the repo and move inside its directory, you'll need the usual UNIX
 core and build utils (sed, libc, C compiler, shell, make).
 
 *Note: this project is currently tested with the GNU libc (2.31), GNU sed (4.5)
-and GCC (10.1.1)*
+and GCC (10.1.1) on Fedora 32. Some additional tests have been done on FreeBSD 12.1*
 
 ## How to use
 

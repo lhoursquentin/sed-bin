@@ -105,23 +105,31 @@ fi
 compile_translator() {
   # Tranlate the translator with itself
   "$translator" < "$translator" > "$generated_file" &&
+  # So after doing some experiments, it seems that on FreeBSD the inode might
+  # be the exact same when re-creating the file very quicky, and in that case
+  # if the timestamp is also the same, meaning we recreate the file in less
+  # than one second, then make concludes that everything is up-to-date. The
+  # workaround here to force make to re-compile sed-bin.c is to remove sed-bin
+  # and sed-bin.o, which would have to be built again anyways.
+  rm -f sed-bin.o sed-bin &&
   make -s &&
   cp "$generated_init_file" "$previous_generated_init_file" &&
   # Compiled tranlator should be able to translate the translator and yield the
   # exact same output
   "$bin" < "$translator" > "$bin_generated_file_output" &&
-  diff --side-by-side --suppress-common-lines "$generated_file" "$bin_generated_file_output" &&
-  diff --side-by-side --suppress-common-lines "$previous_generated_init_file" "$generated_init_file"
+  diff "$generated_file" "$bin_generated_file_output" &&
+  diff "$previous_generated_init_file" "$generated_init_file"
 }
 
 equal_output() {
   echo --------------------------
 
-  printf '%s\n' "$input" | $sed_implementation $n_opt "$sed_code" > "$expected_output" &&
-  printf '%s\n' "$sed_code" | "$translator" > "$generated_file" &&
+  printf '%s\n' "$input" | timeout 20 $sed_implementation $n_opt "$sed_code" > "$expected_output" &&
+  printf '%s\n' "$sed_code" | timeout 20 "$translator" > "$generated_file" &&
+  rm -f sed-bin.o sed-bin &&
   make -s &&
-  printf '%s\n' "$input" | "$bin" $n_opt > "$bin_generated_file_output" &&
-  diff --side-by-side "$expected_output" "$bin_generated_file_output"
+  printf '%s\n' "$input" | timeout 20 "$bin" $n_opt > "$bin_generated_file_output" &&
+  diff "$expected_output" "$bin_generated_file_output"
 }
 
 verify() {
@@ -210,10 +218,12 @@ verify 's/x/y/3pg' 'axbxcxdxex
 fxgxhxixjx'
 verify 's/x/y/pg3' 'axbxcxdxex
 fxgxhxixjx'
-verify 's/x/y/4; t; d' 'axbxcxdxex
+verify 's/x/y/4; t
+d' 'axbxcxdxex
 fxgxhxixjx'
 # sub success should not be set if the nth is never reached
-verify 's/x/y/40; t; d' 'axbxcxdxex
+verify 's/x/y/40; t
+d' 'axbxcxdxex
 fxgxhxixjx'
 # check we can parse nth over 9
 verify 's/x/y/12' 'xxxxxxxxxxxxxxxxxxxx'
@@ -232,29 +242,52 @@ fxgxhxixjx'
 rm "$test_file"
 
 # t
-verify ': start; s/^[^[:blank:]]//; t start' 'Hello World'
+verify ': start
+s/^[^[:blank:]]//; t start' 'Hello World'
+
+# Label name not taking the whole line is not supported by FreeBSD.
+# Check that we support it anyways.
+
 # t, verify that reading a newline resets the substitution success to false
 verify 't end; s/foo//; d; : end' 'foo
 bar'
-verify 's/.*/yo/; n; t end; p; : end; d' 'foo
+verify 't end
+s/foo//; d; : end' 'foo
 bar'
-verify 's/.*/yo/; N; t end; p; : end; d' 'foo
+verify 's/.*/yo/; n; t end
+p; : end
+d' 'foo
+bar'
+verify 's/.*/yo/; N; t end
+p; : end
+d' 'foo
 bar'
 verify 's/^/x/; t; s/^/y/' 'foo
 bar'
 verify 's/^/x/; t   ; s/^/y/' 'foo
 bar'
+verify 's/^/x/; t
+s/^/y/' 'foo
+bar'
 verify 's/non matching pattern/x/; t; s/^/y/' 'foo
 bar'
 verify 's/non matching pattern/x/; t ; s/^/y/' 'foo
 bar'
+verify 's/non matching pattern/x/; t
+s/^/y/' 'foo
+bar'
 
 
 # b
+verify ':start
+s/.//; /^[^[:blank:]]/b start' 'Hello World'
 verify ':start; s/.//; /^[^[:blank:]]/b start' 'Hello World'
 verify 's/^/x/; b; s/^/y/' 'foo
 bar'
 verify 's/^/x/; b   ; s/^/y/' 'foo
+bar'
+verify 's/^/x/; b
+s/^/y/' 'foo
 bar'
 
 # H and G
@@ -271,15 +304,17 @@ is not a
 single line'
 
 # d and D
-verify 's/Hello/foo/; t end; d; s/foo/bar/; :end' 'Hello
+verify 's/Hello/foo/; t end
+d; s/foo/bar/; :end' 'Hello
 World
 Hello
 You'
-verify 's/Hello/foo/; t end; D; s/foo/bar/; :end' 'Hello
+verify 's/Hello/foo/; t end
+D; s/foo/bar/; :end' 'Hello
 World
 Hello
 You'
-verify '/^hey/{=;q}; N; s/bar/hey/; D; s/.*/unreach/; p' 'foo
+verify '/^hey/{=;q;}; N; s/bar/hey/; D; s/.*/unreach/; p' 'foo
 bar
 baz'
 verify '/match fail/d; s/foo/bar/' 'foo'
@@ -287,7 +322,8 @@ verify '/match fail/d; s/foo/bar/' 'foo'
 # n and N
 verify 's/Hello/foo/; n; s/World/bar/; q' 'Hello
 World'
-verify ': start; s/^.//; N; b start' 'This line
+verify ': start
+s/^.//; N; b start' 'This line
 is not a
 single line'
 
@@ -309,7 +345,7 @@ verify '/foo/s///' 'foo bar
 funk'
 verify '/foo/s///' 'foo bar
 funk'
-verify '/foo/{/funk/s//hey/}' 'foo funk'
+verify '/foo/{/funk/s//hey/;}' 'foo funk'
 verify 's/foo/bar/; s//funk/' 'foo foo foo'
 
 verify '/foo/!s/f/z/' 'foo
@@ -398,7 +434,7 @@ funk
 fax'
 
 # Busybox v1.30.1 fails this one
-verify '2!{1,2s/^/> /}' 'foo
+verify '2!{1,2s/^/> /;}' 'foo
 bar
 funk
 fax'
@@ -421,7 +457,7 @@ verify '$s/^/last line: /' 'foo
 bar
 baz'
 
-verify '${s/^/last line: /; p}' 'foo
+verify '${s/^/last line: /; p;}' 'foo
 bar
 baz'
 
@@ -439,7 +475,7 @@ bar
 baz
 funk'
 
-verify '/bar/,${s/^/after bar: /}' 'foo
+verify '/bar/,${s/^/after bar: /;}' 'foo
 bar
 baz
 funk'
@@ -534,11 +570,12 @@ verify 'N;N;s/\na[\n]b\n/yo/g' '
 anb
 
 '
-# With GNU sed not in POSIX mode [\n] means newline, whereas in POSIX mode
-# this means either backslash or n, we'll follow POSIX mode behavior.
+# FreeBSD sed fails this one
 verify 'y/[/]/' '[[]]'
 verify '/[/]/s/[/]/yo/' '/'
 verify 's/hey/[/' 'hey'
+# With GNU sed not in POSIX mode [\n] means newline, whereas in POSIX mode
+# this means either backslash or n, we'll follow POSIX mode behavior.
 verify 's/[\n[:blank:]\n]/foo/g' 'n \ n \ n'
 verify 's/\[/]foo/' 'a[b'
 verify 's/[[:blank:]/]/foo/g' 'a/b c'
