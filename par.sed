@@ -9,9 +9,9 @@
 
 1{
   x
-  s/^/\
+  s/.*/\
 0\
-0/
+0&/
   x
   /^#n/{
     s/.*/status.suppress_default_output = true;/w generated-init.c
@@ -93,7 +93,7 @@ s/^[0-9]/&/; t addr_number
 s/^\$//; t addr_last_line
 s/^./invalid command: &/
 t fail
-s/^/Missing command/
+s/.*/Missing command: &/
 t fail
 
 : comment
@@ -104,7 +104,7 @@ d
 P
 s/.*\n//
 t start
-s/^/single char cmd cleanup: /
+s/.*/single char cmd cleanup: &/
 b fail
 
 : addr_last_line
@@ -121,8 +121,8 @@ s/\(.*\)\n.*/\1/
 x
 # add address followed by a newline, the pattern should never have more than one
 # newline
-s/^/status.last_line_nb\
-/
+s/.*/status.last_line_nb\
+&/
 # save address to hold and strip it from pattern, only leaving rest of the line
 H
 s/^.*\n//
@@ -155,7 +155,10 @@ b fail
 
 : addr_regex
 x
-s/^/r/
+# s/^/r/ triggers a bug on FreeBSD where the pattern space gets flushed
+# entirely if it starts with a newline before executing a s/^/foo/
+# substitution. Workaround is to use s/.*/preceding text&/
+s/.*/r&/
 t regex_start_process
 
 : r_cmd
@@ -201,13 +204,13 @@ i \
 x
 # at the top of the hold, track the number of delimiters encountered:
 # s/foo -> s0 but s/foo/bar -> s1
-s/^/s0/
+s/.*/s0&/
 
 t regex_start_process
 
 : y_cmd
 x
-s/^/y0/
+s/.*/y0&/
 t regex_start_process
 
 : regex_start_process
@@ -310,7 +313,7 @@ x
     # found range, save this char at the top of the hold to remember to treat
     # every character literally
     x
-    s/^/[/
+    s/.*/[&/
     x
     t regex_save_char
   }
@@ -606,7 +609,7 @@ b fail
 P
 s/.*\n//
 t start
-s/^/label cmds cleanup: /
+s/.*/label cmds cleanup: &/
 b fail
 
 : aci_cmds
@@ -631,5 +634,5 @@ n
 b start
 
 : fail
-s/^/FAIL - /
+s/.*/FAIL - &/
 q
