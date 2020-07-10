@@ -32,18 +32,18 @@ static FILE *open_file(
 
 int main(int argc, char **argv) {
   Status status = {
-    .pattern_space = (char[PATTERN_SIZE]){},
-    .hold_space = (char[PATTERN_SIZE]){},
+    .pattern_space = (char[PATTERN_SIZE]){0},
+    .hold_space = (char[PATTERN_SIZE]){0},
     .sub_success = false,
     .line_nb = 0,
     .last_line_nb = UINT_MAX,
     .skip_read = false,
     .last_regex = NULL,
-    .range_ids = (size_t [MAX_ACTIVE_RANGES]){},
-    .suppressed_range_ids = (size_t [MAX_ACTIVE_RANGES]){},
-    .pending_outputs = (Pending_output[MAX_PENDING_OUTPUT]){},
+    .range_ids = (size_t [MAX_ACTIVE_RANGES]){0},
+    .suppressed_range_ids = (size_t [MAX_ACTIVE_RANGES]){0},
+    .pending_outputs = (Pending_output[MAX_PENDING_OUTPUT]){{0}},
     .pending_output_counter = 0,
-    .next_line = (char[PATTERN_SIZE]){},
+    .next_line = (char[PATTERN_SIZE]){0},
     .last_line_addr_present = false,
     .suppress_default_output = false,
   };
@@ -53,8 +53,8 @@ int main(int argc, char **argv) {
     status.suppress_default_output = true;
   }
 
-  const char *open_file_paths[MAX_WFILES];
-  FILE *open_file_handles[MAX_WFILES];
+  const char *open_file_paths[MAX_WFILES] = {NULL};
+  FILE *open_file_handles[MAX_WFILES] = {NULL};
 
   #include "generated-init.c"
 
