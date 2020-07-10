@@ -53,7 +53,7 @@ static size_t expand_replace(
       case '8':
       case '9':
         if (found_backslash) {
-          const char back_ref_index = replace_char - '0';
+          const size_t back_ref_index = replace_char - '0';
           const regoff_t so = pmatch[back_ref_index].rm_so;
           // case when there is match but the capture group is empty:
           //   echo foo | sed 's/\(x\)*foo/\1bar/'
@@ -349,11 +349,14 @@ void p(const Status *const status) {
 
 void P(const Status *const status) {
   const char *const pattern_space = status->pattern_space;
-  printf(
-    "%.*s\n",
-    strchr(pattern_space, '\n') - pattern_space,
-    pattern_space
-  );
+  const char *const pattern_space_at_newline = strchr(pattern_space, '\n');
+  if (pattern_space_at_newline) {
+    const unsigned int first_line_length =
+      pattern_space_at_newline - pattern_space;
+    printf("%.*s\n", first_line_length, pattern_space);
+  } else {
+    p(status);
+  }
 }
 
 void q(const Status *const status) {

@@ -296,6 +296,7 @@ verify 'H;H;G;' 'Hello World'
 # p and P
 verify 'h; s/ World//; x; s/Hello //; H; s/.*/end/; H; g; p' 'Hello World'
 verify 'h; s/ World//; x; s/Hello //; H; s/.*/end/; H; g; P' 'Hello World'
+verify P foo
 
 # = equal
 verify '=' 'Abc'
