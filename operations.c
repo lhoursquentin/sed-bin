@@ -200,6 +200,8 @@ operation_ret D(Status *const status) {
     return CONTINUE;
   }
 
+  // Backward memmove instead of moving the pattern space ptr forward because
+  // this would mean losing part of the limited stack space that we have
   memmove(
     pattern_space,
     newline_location + 1, // + 1 to start copying after the newline
@@ -388,11 +390,10 @@ void s(
   const bool opt_p = opts & S_OPT_P;
 
   char *pattern_space = status->pattern_space;
-  size_t pattern_offset = 0;
   size_t sub_nb = 0;
   do {
     const size_t initial_sub_nb = sub_nb;
-    pattern_offset = substitution(
+    const size_t pattern_offset = substitution(
       regex_obj,
       pattern_space,
       replace,
