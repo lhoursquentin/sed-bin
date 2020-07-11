@@ -7,16 +7,16 @@ An implementation of sed based on C translation.
 
 Usage:
 
-  sed [−n] script [file...]
+  sed [-n] script [file...]
 
-  sed [−n] −e script [−e script]... [−f script_file]... [file...]
+  sed [-n] -e script [-e script]... [-f script_file]... [file...]
 
-  sed [−n] [−e script]... −f script_file [−f script_file]...  [file...]
+  sed [-n] [-e script]... -f script_file [-f script_file]...  [file...]
 EOF
   exit "${1-0}"
 }
 
-bin=./sed-bin
+bin="${BIN-./sed-bin}"
 default_translator=./par.sed
 translator="${SED_TRANSLATOR-$default_translator}"
 generated_file=generated.c
@@ -79,5 +79,13 @@ printf '%s\n' "$script" | "$translator" > "$generated_file" &&
     if "$n_opt_found"; then
       set -- -n
     fi
-    "$bin" "$@"
+    case "$bin" in
+      /*)
+        set -- "$bin"
+        ;;
+      *)
+        set -- ./"$bin"
+        ;;
+    esac
+    "$@"
   }

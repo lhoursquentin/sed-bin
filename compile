@@ -31,7 +31,7 @@ done
 
 readonly translator=./par.sed
 readonly generated_file=generated.c
-readonly bin=./sed-bin
+readonly bin="${BIN-./sed-bin}"
 
 set -x
 

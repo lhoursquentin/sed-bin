@@ -290,14 +290,16 @@ variable set to the newly created binary.
 For example:
 
 ```sh
-sh$ ./compile ./par.sed
+sh$ BIN=compiled-translator ./compile ./par.sed
 + cat ./par.sed
 + ./par.sed
 + make
+cc    -c -o address.o address.c
+cc    -c -o operations.o operations.c
+cc    -c -o read.o read.c
 cc    -c -o sed-bin.o sed-bin.c
-cc   sed-bin.o address.o operations.o read.o   -o sed-bin
-Compiled sed script available: ./sed-bin
-sh$ mv sed-bin compiled-translator
+cc address.o operations.o read.o sed-bin.o -o compiled-translator
+Compiled sed script available: compiled-translator
 sh$ echo foo | SED_TRANSLATOR=./compiled-translator ./sed 's/foo/bar/'
 bar
 ```
