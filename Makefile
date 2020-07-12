@@ -10,4 +10,4 @@ sed-bin.o: generated.c generated-init.c
 .PHONY: clean
 
 clean:
-	rm -f *.o $(bin)
+	rm -f *.o $(BIN)
