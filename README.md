@@ -190,7 +190,7 @@ The actual logic to handle `y` (and most other commands) is not generated, we
 just need to translate the sed syntax to valid C code, which here stays fairly
 readable.
 
-Let's look at one more example:
+Let's look at a slightly more complex example:
 
 ```sed
 /foo/{
@@ -208,6 +208,30 @@ p(&status);
 x(&status);
 
 }
+```
+
+And an example of how labels are handled:
+
+```sed
+b end
+
+# some comment
+i \
+Doesn't look like this\
+code is reachable
+
+: end
+```
+
+Translates to:
+```c
+goto end;
+
+
+// some comment
+i("Doesn't look like this\ncode is reachable");
+
+end:;
 ```
 
 # Why
@@ -306,9 +330,14 @@ bar
 
 # Notes
 
-- Missing/incomplete features (supporting/fixing those is planned):
+- Incomplete features / known issues:
   - with 2 addresses, the `c` command will be executed every time for each
-  matching line instead of only once when leaving the range.
+  matching line instead of only once when leaving the range
+  - sed label names conflicting with C keywords (break/continue etc.) are not
+  handled
+  - no pattern/hold space overflow checks, currently both limited to 8192 bytes
+  as per the POSIX spec requirement. Going over that limit will most likely
+  cause a segfault.
 
 - The translator does not handle invalid sed scripts, it will just generate
   invalid C code which will probably fail to compile, make sure you can run your
@@ -325,7 +354,7 @@ bar
   `./sed-bin < file` not `./sed-bin file`. If you have multiple files use
   `cat file1 file2 file3 | ./sed-bin`.
 
-- There are some bugs, the C code is very rough around the edges (by that I mean
-  dirty and unsafe, for instance allocating everything on the stack without
-  checking any overflow), I'm still working on it, but contributions
-  (issues/comments/pull requests) are also welcomed :)
+- The C code is very rough around the edges (by that I mean dirty and unsafe,
+  for instance allocating everything on the stack without checking any
+  overflow), I'm still working on it, but contributions (issues/comments/pull
+  requests) are also welcomed :)
