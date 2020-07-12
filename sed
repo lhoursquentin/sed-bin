@@ -81,10 +81,10 @@ printf '%s\n' "$script" | "$translator" > "$generated_file" &&
     fi
     case "$bin" in
       /*)
-        set -- "$bin"
+        set -- "$bin" "$@"
         ;;
       *)
-        set -- ./"$bin"
+        set -- ./"$bin" "$@"
         ;;
     esac
     "$@"
