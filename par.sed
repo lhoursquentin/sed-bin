@@ -554,7 +554,6 @@ b valid_s_or_addr_parsing
 # close C function call + add ";" if not an address
 s/$/)/
 /^[sy]/s/$/;/
-/^s/s/$/ }/
 x
 # negative address
 /^[[:blank:]]*!/{
@@ -585,6 +584,8 @@ h
 # function name
 s/^\([^[:space:]]*\).*\n/\1(\&status, /
 s/^[nr].*/if (addr_&)/
+/^s/s/$/\
+}/
 p
 # clean the C code from the hold
 g
