@@ -320,6 +320,21 @@ bar
 baz'
 verify '/match fail/d; s/foo/bar/' 'foo'
 
+# This one is actually a meaningful use of D (combined with P), kind of an
+# unreadable upgrade of `grep -o`
+verify 't match
+s/[^:]*: \(...\)/\
+\1\
+/
+D
+: match
+P
+D
+' 'stuff: foo, other stuff: bar
+some stuff: baz
+unrelated
+final stuff: fun'
+
 # n and N
 verify 's/Hello/foo/; n; s/World/bar/; q' 'Hello
 World'
