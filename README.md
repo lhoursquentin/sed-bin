@@ -167,6 +167,8 @@ Other notable sed scripts tested with this project:
   Jargas
 - [dc.sed](http://sed.sourceforge.net/grabbag/scripts/dc.sed), an arbitrary
   precision reverse polish notation calculator written by Greg Ubben
+- [chainlint.sed](https://github.com/git/git/blob/master/t/chainlint.sed), a git
+  internal tool to detect broken "&&" chains in shell scripts.
 
 # How it works
 
@@ -332,8 +334,8 @@ bar
   - with 2 addresses, the `c` command will be executed every time for each
   matching line instead of only once when leaving the range
   - no pattern/hold space overflow checks, currently both limited to 8192 bytes
-  as per the POSIX spec requirement. Going over that limit will most likely
-  cause a segfault.
+  as per the minimum POSIX spec requirement. Going over that limit will most
+  likely cause a segfault.
 
 - The translator does not handle invalid sed scripts, it will just generate
   invalid C code which will probably fail to compile, make sure you can run your
