@@ -48,10 +48,13 @@ t start
 : cmd_check
 s|^#|//|; t comment
 /^[bt]/{
-  s/^b[[:blank:]]*\([^[:blank:];}][^[:blank:];}]*\)/goto \1;\
+  # All labels will be suffixed by "_label" to prevent C reserved words
+  # conflicts. For instance naming a label "break", "continue" or "case" is fine
+  # in sed but not in C.
+  s/^b[[:blank:]]*\([^[:blank:];}][^[:blank:];}]*\)/goto \1_label;\
 /
   t label_cmds
-  s/^t[[:blank:]]*\([^[:blank:];}][^[:blank:];}]*\)/if (status.sub_success) { status.sub_success = false; goto \1; }\
+  s/^t[[:blank:]]*\([^[:blank:];}][^[:blank:];}]*\)/if (status.sub_success) { status.sub_success = false; goto \1_label; }\
 /
   t label_cmds
 
@@ -62,7 +65,7 @@ s|^#|//|; t comment
   t label_cmds
 }
 # semi-colon needed since declarations cannot directly follow a label in C
-s/^:[[:blank:]]*\([^;}][^[:blank:];}]*\)/\1:;\
+s/^:[[:blank:]]*\([^;}][^[:blank:];}]*\)/\1_label:;\
 /; t label_cmds
 s/^r[[:blank:]]*//; t r_cmd
 s/^w[[:blank:]]*//; t w_cmd

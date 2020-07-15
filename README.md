@@ -166,9 +166,7 @@ Other notable sed scripts tested with this project:
   [sokoban](https://en.wikipedia.org/wiki/Sokoban) game written by Aurelio
   Jargas
 - [dc.sed](http://sed.sourceforge.net/grabbag/scripts/dc.sed), an arbitrary
-  precision reverse polish notation calculator written by Greg Ubben (to make
-  it work the `break` label needs to be renamed to avoid conflicting with the C
-  keyword)
+  precision reverse polish notation calculator written by Greg Ubben
 
 # How it works
 
@@ -225,13 +223,13 @@ code is reachable
 
 Translates to:
 ```c
-goto end;
+goto end_label;
 
 
 // some comment
 i("Doesn't look like this\ncode is reachable");
 
-end:;
+end_label:;
 ```
 
 # Why
@@ -333,8 +331,6 @@ bar
 - Incomplete features / known issues:
   - with 2 addresses, the `c` command will be executed every time for each
   matching line instead of only once when leaving the range
-  - sed label names conflicting with C keywords (break/continue etc.) are not
-  handled
   - no pattern/hold space overflow checks, currently both limited to 8192 bytes
   as per the POSIX spec requirement. Going over that limit will most likely
   cause a segfault.
