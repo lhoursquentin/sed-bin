@@ -1,5 +1,8 @@
 #!/bin/sh
 
+pwd0=$PWD
+cd -P -- "${0%/*}/"
+
 usage() {
   basename="${0##*/}"
   cat << EOF
@@ -43,7 +46,7 @@ $1"
       f_opt_found=true
       shift; nb_args="$((nb_args - 1))"
       script="$script
-$(cat $1)"
+$(cd "$pwd0"; cat "$1")"
       ;;
     -h|--help)
       usage
