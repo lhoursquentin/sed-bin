@@ -89,11 +89,15 @@ elif ! "$no_opt_script_found"; then
 fi
 
 printf '%s\n' "$script" | "$translator" > "$generated_file" &&
-  make -C "$mydir" -s &&
-  { cat "$@" | sed_exec; }
+  make -C "$mydir" -s && sed_exec "$@"
 }
 
 sed_exec() {
+  case $# in
+    0) ;;
+#   1) exec <"$1" ;;  # TODO: will lose filename, maybe add option
+    *) cat "$@" | sed_exec ;;
+  esac
   if "$n_opt_found"; then
     set -- -n
   fi
