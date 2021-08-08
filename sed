@@ -107,7 +107,7 @@ __sed_default_exec() {
   if "$n_opt_found"; then
     set -- -n
   fi
-  "$bin" "$@"
+  exec "$bin" "$@"
 }
 
 if [ -z "${SED_LIBMODE:-}" ]; then
