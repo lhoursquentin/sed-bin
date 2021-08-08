@@ -2,7 +2,6 @@
 set -u
 
 __usage() {
-  basename="${0##*/}"
   cat << EOF
 An implementation of sed based on C translation.
 
@@ -67,7 +66,8 @@ __sed_main "$@"
 
 __sed_main() { __sed_default_main "$@"; }
 __sed_default_main() {
-mydir=${0%/*}/
+: "${SED_DIR:=${0%/*}/}"
+mydir=$SED_DIR
 case "$mydir" in
   /*) ;;
   *) mydir=$PWD/$mydir ;;
