@@ -97,7 +97,8 @@ __sed_default_make() {  # args: script
 printf '%s\n' "$1" | "$translator" > "$generated_file" &&
   make -C "$mydir" -s
 }
-__sed_exec() {
+__sed_exec() { __sed_default_exec "$@"; }
+__sed_default_exec() {
   case $# in
     0) ;;
 #   1) exec <"$1" ;;  # TODO: will lose filename, maybe add option
