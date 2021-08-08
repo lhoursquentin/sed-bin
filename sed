@@ -1,7 +1,5 @@
 #!/bin/sh
-
-pwd0=$PWD
-cd -P -- "${0%/*}/"
+set -u
 
 usage() {
   basename="${0##*/}"
@@ -19,11 +17,7 @@ EOF
   exit "${1-0}"
 }
 
-bin="${BIN-./sed-bin}"
-default_translator=./par.sed
-translator="${SED_TRANSLATOR-$default_translator}"
-generated_file=generated.c
-
+sed_parse_args() {
 nb_args="$#"
 e_opt_found=false
 f_opt_found=false
@@ -46,7 +40,7 @@ $1"
       f_opt_found=true
       shift; nb_args="$((nb_args - 1))"
       script="$script
-$(cd "$pwd0"; cat "$1")"
+$(cat "$1")"
       ;;
     -h|--help)
       usage
@@ -68,6 +62,25 @@ $(cd "$pwd0"; cat "$1")"
   shift; nb_args="$((nb_args - 1))"
 done
 
+sed_main "$@"
+}
+
+sed_main() {
+mydir=${0%/*}/
+case "$mydir" in
+  /*) ;;
+  *) mydir=$PWD/$mydir ;;
+esac
+
+bin="${BIN-$mydir/sed-bin}"
+default_translator=$mydir/par.sed
+translator="${SED_TRANSLATOR-$default_translator}"
+generated_file=$mydir/generated.c
+case "$bin" in
+  /*) ;;
+  *) bin=$mydir/$bin ;;
+esac
+
 if "$e_opt_found" || "$f_opt_found"; then
   # delete extra leading newline, this is important for #n handling
   script="${script#?}"
@@ -76,19 +89,18 @@ elif ! "$no_opt_script_found"; then
 fi
 
 printf '%s\n' "$script" | "$translator" > "$generated_file" &&
-  make -s &&
+  make -C "$mydir" -s &&
   cat "$@" | {
     set --
     if "$n_opt_found"; then
       set -- -n
     fi
-    case "$bin" in
-      /*)
-        set -- "$bin" "$@"
-        ;;
-      *)
-        set -- ./"$bin" "$@"
-        ;;
-    esac
-    "$@"
+    "$bin" "$@"
   }
+}
+
+if [ -z "${SED_LIBMODE:-}" ]; then
+  sed_parse_args "$@"
+else
+  eval "$SED_LIBMODE"
+fi
