@@ -65,7 +65,8 @@ done
 sed_main "$@"
 }
 
-sed_main() {
+sed_main() { sed_default_main "$@"; }
+sed_default_main() {
 mydir=${0%/*}/
 case "$mydir" in
   /*) ;;
