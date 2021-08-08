@@ -1,7 +1,7 @@
 #!/bin/sh
 set -u
 
-usage() {
+__usage() {
   basename="${0##*/}"
   cat << EOF
 An implementation of sed based on C translation.
@@ -17,7 +17,7 @@ EOF
   exit "${1-0}"
 }
 
-sed_parse_args() {
+__sed_parse_args() {
 nb_args="$#"
 e_opt_found=false
 f_opt_found=false
@@ -29,7 +29,7 @@ while [ "$nb_args" -gt 0 ]; do
     -e)
       e_opt_found=true
       if "$f_opt_found"; then
-        usage 1 >&2
+        __usage 1 >&2
       fi
 
       shift; nb_args="$((nb_args - 1))"
@@ -43,7 +43,7 @@ $1"
 $(cat "$1")"
       ;;
     -h|--help)
-      usage
+      __usage
       ;;
     -n)
       n_opt_found=true
@@ -62,11 +62,11 @@ $(cat "$1")"
   shift; nb_args="$((nb_args - 1))"
 done
 
-sed_main "$@"
+__sed_main "$@"
 }
 
-sed_main() { sed_default_main "$@"; }
-sed_default_main() {
+__sed_main() { __sed_default_main "$@"; }
+__sed_default_main() {
 mydir=${0%/*}/
 case "$mydir" in
   /*) ;;
@@ -86,22 +86,22 @@ if "$e_opt_found" || "$f_opt_found"; then
   # delete extra leading newline, this is important for #n handling
   script="${script#?}"
 elif ! "$no_opt_script_found"; then
-  usage 1 >&2
+  __usage 1 >&2
 fi
 
-  sed_make "$script" && sed_exec "$@"
+  __sed_make "$script" && __sed_exec "$@"
 }
 
-sed_make() { sed_default_make "$@"; }
-sed_default_make() {  # args: script
+__sed_make() { __sed_default_make "$@"; }
+__sed_default_make() {  # args: script
 printf '%s\n' "$1" | "$translator" > "$generated_file" &&
   make -C "$mydir" -s
 }
-sed_exec() {
+__sed_exec() {
   case $# in
     0) ;;
 #   1) exec <"$1" ;;  # TODO: will lose filename, maybe add option
-    *) cat "$@" | sed_exec ;;
+    *) cat "$@" | __sed_exec ;;
   esac
   if "$n_opt_found"; then
     set -- -n
@@ -110,7 +110,7 @@ sed_exec() {
 }
 
 if [ -z "${SED_LIBMODE:-}" ]; then
-  sed_parse_args "$@"
+  __sed_parse_args "$@"
 else
   eval "$SED_LIBMODE"
 fi
