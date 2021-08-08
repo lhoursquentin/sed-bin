@@ -89,10 +89,14 @@ elif ! "$no_opt_script_found"; then
   usage 1 >&2
 fi
 
-printf '%s\n' "$script" | "$translator" > "$generated_file" &&
-  make -C "$mydir" -s && sed_exec "$@"
+  sed_make "$script" && sed_exec "$@"
 }
 
+sed_make() { sed_default_make "$@"; }
+sed_default_make() {  # args: script
+printf '%s\n' "$1" | "$translator" > "$generated_file" &&
+  make -C "$mydir" -s
+}
 sed_exec() {
   case $# in
     0) ;;
