@@ -90,13 +90,14 @@ fi
 
 printf '%s\n' "$script" | "$translator" > "$generated_file" &&
   make -C "$mydir" -s &&
-  cat "$@" | {
-    set --
-    if "$n_opt_found"; then
-      set -- -n
-    fi
-    "$bin" "$@"
-  }
+  { cat "$@" | sed_exec; }
+}
+
+sed_exec() {
+  if "$n_opt_found"; then
+    set -- -n
+  fi
+  "$bin" "$@"
 }
 
 if [ -z "${SED_LIBMODE:-}" ]; then
