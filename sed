@@ -101,8 +101,8 @@ __sed_exec() { __sed_default_exec "$@"; }
 __sed_default_exec() {
   case $# in
     0) ;;
-#   1) exec <"$1" ;;  # TODO: will lose filename, maybe add option
-    *) cat "$@" | __sed_exec ;;
+    1) exec <"$1"; shift ;;  # will lose filename, but we always do anyway
+    *) cat "$@" | __sed_default_exec ;;
   esac
   if "$n_opt_found"; then
     set -- -n
