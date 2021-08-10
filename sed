@@ -66,21 +66,19 @@ __sed_main "$@"
 
 __sed_main() { __sed_default_main "$@"; }
 __sed_default_main() {
-: "${SED_DIR:=${0%/*}/}"
-mydir=$SED_DIR
-case "$mydir" in
-  /*) ;;
-  *) mydir=$PWD/$mydir ;;
-esac
+if [ -z "${SED_DIR:-}" ]; then
+  SED_DIR=$0
+  case "$SED_DIR" in
+    /*) ;;
+    *) SED_DIR=$PWD/$0 ;;
+  esac
+  SED_DIR=${SED_DIR%/*}/
+fi
 
-bin="${BIN-$mydir/sed-bin}"
-default_translator=$mydir/par.sed
+bin="${BIN-$SED_DIR/sed-bin}"
+default_translator=$SED_DIR/par.sed
 translator="${SED_TRANSLATOR-$default_translator}"
-generated_file=$mydir/generated.c
-case "$bin" in
-  /*) ;;
-  *) bin=$mydir/$bin ;;
-esac
+generated_file=$SED_DIR/generated.c
 
 if "$e_opt_found" || "$f_opt_found"; then
   # delete extra leading newline, this is important for #n handling
@@ -95,7 +93,7 @@ fi
 __sed_make() { __sed_default_make "$@"; }
 __sed_default_make() {  # args: script
 printf '%s\n' "$1" | "$translator" > "$generated_file" &&
-  make -C "$mydir" -s
+  make -C "$SED_DIR" -s
 }
 __sed_exec() { __sed_default_exec "$@"; }
 __sed_default_exec() {
