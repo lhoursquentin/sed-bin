@@ -248,6 +248,13 @@ x
 
 : regex_eat_next
 
+# Nothing on the line except our saved delimiter, meaning we reached the end of
+# the line without finding a backslash or the closing delimiter, which is
+# invalid
+/^.$/{
+  s/.*/Missing closing delimiter/
+  b fail
+}
 # Case where we only have our delimiter and a backslash on the line, meaning
 # there's a newline in the s command
 /^.\\$/{
@@ -638,5 +645,5 @@ n
 b start
 
 : fail
-s/.*/FAIL - &/
+s/.*/#error Translation failure - &/
 q

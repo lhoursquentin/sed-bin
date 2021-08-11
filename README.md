@@ -338,8 +338,9 @@ bar
   likely cause a segfault.
 
 - The translator does not handle invalid sed scripts, it will just generate
-  invalid C code which will probably fail to compile, make sure you can run your
-  script with an actual `sed` implementation before attempting to translate it.
+  invalid C code (and potentially loop endlessly) which will probably fail to
+  compile, make sure you can run your script with an actual `sed` implementation
+  before attempting to translate it.
 
 - Non POSIX support is currently not planned, if you are using GNU sed, you can
   try to see what is not supported by running your script with the `--posix`
