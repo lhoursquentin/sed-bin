@@ -92,7 +92,7 @@ fi
 
 __sed_make() { __sed_default_make "$@"; }
 __sed_default_make() {  # args: script
-printf '%s\n' "$1" | "$translator" > "$generated_file" &&
+printf '%s\n' "$1" | (cd -- "$SED_DIR" && "$translator") > "$generated_file" &&
   make -C "$SED_DIR" -s
 }
 __sed_exec() { __sed_default_exec "$@"; }
