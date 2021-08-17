@@ -32,8 +32,14 @@ static FILE *open_file(
 
 int main(int argc, char **argv) {
   Status status = {
-    .pattern_space = (char[PATTERN_SIZE]){0},
-    .hold_space = (char[PATTERN_SIZE]){0},
+    .pattern_space = {
+      .str = (char[PATTERN_SIZE]){0},
+      .length = 0
+    },
+    .hold_space = {
+      .str = (char[PATTERN_SIZE]){0},
+      .length = 0
+    },
     .sub_success = false,
     .line_nb = 0,
     .last_line_nb = UINT_MAX,
@@ -43,7 +49,10 @@ int main(int argc, char **argv) {
     .suppressed_range_ids = (size_t [MAX_ACTIVE_RANGES]){0},
     .pending_outputs = (Pending_output[MAX_PENDING_OUTPUT]){{0}},
     .pending_output_counter = 0,
-    .next_line = (char[PATTERN_SIZE]){0},
+    .next_line = {
+      .str = (char[PATTERN_SIZE]){0},
+      .length = 0
+    },
     .last_line_addr_present = false,
     .suppress_default_output = false,
   };
@@ -61,13 +70,21 @@ int main(int argc, char **argv) {
   while (true) {
     if (status.skip_read) {
       status.skip_read = false;
-    } else if (!read_pattern(&status, status.pattern_space, PATTERN_SIZE)) {
-      break;
+    } else {
+      size_t nb_chars_read = read_pattern(
+        &status,
+        status.pattern_space.str,
+        PATTERN_SIZE
+      );
+      if (nb_chars_read == -1) {
+        break;
+      }
+      status.pattern_space.length = nb_chars_read;
     }
     status.skip_read = false;
     #include "generated.c"
     if (!status.suppress_default_output) {
-      puts(status.pattern_space);
+      p(&status);
     }
   }
   return EXIT_SUCCESS;

@@ -1,4 +1,3 @@
-#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -27,25 +26,25 @@ static void handle_pending_ouput(Status *const status) {
   status->pending_output_counter = 0;
 }
 
-bool read_pattern(Status *const status, char *const buf, const size_t size) {
+ssize_t read_pattern(Status *const status, char *const buf, const size_t size) {
   handle_pending_ouput(status);
 
   if (status->last_line_addr_present &&
       status->line_nb > 0 &&
       status->line_nb == status->last_line_nb) {
-    return 0;
+    return -1;
   }
 
-  size_t read_len;
+  ssize_t read_len;
   if (!status->last_line_addr_present || status->line_nb == 0) {
     if (!fgets(buf, size, stdin)) {
-      return 0;
+      return -1;
     }
     read_len = strlen(buf);
   } else {
-    read_len = strlen(status->next_line);
+    read_len = status->next_line.length;
     if (read_len) {
-      memcpy(buf, status->next_line, read_len);
+      memcpy(buf, status->next_line.str, read_len);
     }
   }
 
@@ -54,14 +53,18 @@ bool read_pattern(Status *const status, char *const buf, const size_t size) {
 
   // try to read the next line, if we fail then that means that the current line
   // is the last one
-  if (status->last_line_addr_present &&
-      !fgets(status->next_line, size, stdin)) {
-    status->last_line_nb = status->line_nb;
+  if (status->last_line_addr_present) {
+    if (fgets(status->next_line.str, size, stdin)) {
+      status->next_line.length = strlen(status->next_line.str);
+    } else {
+      status->last_line_nb = status->line_nb;
+    }
   }
 
   // fgets includes the newline, remove it
   if (read_len && buf[read_len - 1] == '\n') {
-    buf[read_len - 1] = 0;
+    read_len--;
+    buf[read_len] = 0;
   }
-  return 1;
+  return read_len;
 }

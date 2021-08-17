@@ -9,6 +9,18 @@
 #include "read.h"
 #include "status.h"
 
+static const char *const get_nearest_newline_ptr(
+  const char *const s,
+  size_t limit
+) {
+  for (size_t i = 0; i < limit; ++i) {
+    if (s[i] == '\n') {
+      return s + i;
+    }
+  }
+  return NULL;
+};
+
 static size_t expand_replace(
   char *const replace_expanded,
   const char *const pattern_space,
@@ -90,11 +102,16 @@ static size_t expand_replace(
 static size_t substitution(
   regex_t *const regex,
   char *pattern_space,
+  const size_t pattern_space_len,
   const char *const replace,
   size_t *const sub_nb,
-  const size_t nth
+  const size_t nth,
+  ssize_t *const nb_chars_removed
 ) {
   regmatch_t pmatch[MAX_MATCHES];
+  // unfortunately regexec does not allow to pass a custom length, requiring a
+  // 0 char insertion
+  pattern_space[pattern_space_len] = '\0';
   if (regexec(
         regex,
         pattern_space,
@@ -115,19 +132,20 @@ static size_t substitution(
   if (nth > *sub_nb) {
     return eo;
   }
+
   // TODO arbitrary size, might be too small
   char replace_expanded[PATTERN_SIZE];
   const size_t replace_expanded_len =
     expand_replace(replace_expanded, pattern_space, replace, pmatch);
+  (*nb_chars_removed) = eo - so - replace_expanded_len;
 
-  const size_t pattern_space_len = strlen(pattern_space);
   // empty match, s/^/foo/ for instance
   if (eo == 0) {
     if (*sub_nb == 1) {
       memmove(
         pattern_space + replace_expanded_len,
         pattern_space,
-        pattern_space_len + 1 // include \0
+        pattern_space_len
       );
       memmove(pattern_space, replace_expanded, replace_expanded_len);
       return replace_expanded_len;
@@ -135,9 +153,9 @@ static size_t substitution(
       // case:  echo 'Hello ' | sed 's|[^ ]*|yo|g'
       pattern_space++;
       memmove(pattern_space, replace_expanded, replace_expanded_len);
-      pattern_space[replace_expanded_len] = '\0';
       return replace_expanded_len + 1; // +1 since we did pattern_space++
     }
+    (*nb_chars_removed) = 0;
     return 1;
   }
 
@@ -169,7 +187,6 @@ static size_t substitution(
       replace_expanded_len - ro
     );
 
-    pattern_space[pattern_space_len + replace_expanded_len - (eo - so)] = 0;
     return so + replace_expanded_len;
   }
   return eo;
@@ -183,29 +200,33 @@ void a(Status *const status, const char *const output) {
 }
 
 void c(Status *const status, const char *const output) {
-  char *const pattern_space = status->pattern_space;
-  pattern_space[0] = '\0';
+  status->pattern_space.length = 0;
   puts(output);
 }
 
 void d(Status *const status) {
-  status->pattern_space[0] = '\0';
+  status->pattern_space.length = 0;
 }
 
 operation_ret D(Status *const status) {
-  char *const pattern_space = status->pattern_space;
-  const char *const newline_location = strchr(pattern_space, '\n');
+  char *const pattern_space = status->pattern_space.str;
+  const char *const newline_location = get_nearest_newline_ptr(
+    pattern_space,
+    status->pattern_space.length
+  );
   if (newline_location == NULL) {
-    pattern_space[0] = '\0';
+    status->pattern_space.length = 0;
     return CONTINUE;
   }
 
+  const size_t first_line_length = newline_location - pattern_space;
+  status->pattern_space.length -= first_line_length + 1; // + 1 for \n
   // Backward memmove instead of moving the pattern space ptr forward because
   // this would mean losing part of the limited stack space that we have
   memmove(
     pattern_space,
     newline_location + 1, // + 1 to start copying after the newline
-    strlen(newline_location + 1) + 1 // last +1 to move \0 as well
+    status->pattern_space.length
   );
   status->skip_read = true;
   return CONTINUE;
@@ -217,47 +238,49 @@ void equal(const Status *const status) {
 }
 
 void g(Status *const status) {
-  char *const pattern_space = status->pattern_space;
-  const char *const hold_space = status->hold_space;
   memcpy(
-    pattern_space,
-    hold_space,
-    strlen(hold_space) + 1 // include \0
+    status->pattern_space.str,
+    status->hold_space.str,
+    status->hold_space.length
   );
+  status->pattern_space.length = status->hold_space.length;
 }
 
 void G(Status *status) {
-  char *const pattern_space = status->pattern_space;
-  const char *const hold_space = status->hold_space;
-  const size_t pattern_space_len = strlen(pattern_space);
+  char *const pattern_space = status->pattern_space.str;
+  const char *const hold_space = status->hold_space.str;
+  const size_t pattern_space_len = status->pattern_space.length;
+  const size_t hold_space_len = status->hold_space.length;
   memcpy(
     pattern_space + pattern_space_len + 1, // we'll place the \n in between
     hold_space,
-    strlen(hold_space) + 1 // include \0
+    hold_space_len
   );
   pattern_space[pattern_space_len] = '\n';
+  status->pattern_space.length += hold_space_len + 1;
 }
 
 void h(Status *status) {
-  const char *const pattern_space = status->pattern_space;
-  char *const hold_space = status->hold_space;
   memcpy(
-    hold_space,
-    pattern_space,
-    strlen(pattern_space) + 1 // include \0
+    status->hold_space.str,
+    status->pattern_space.str,
+    status->pattern_space.length
   );
+  status->hold_space.length = status->pattern_space.length;
 }
 
 void H(Status *status) {
-  const char *const pattern_space = status->pattern_space;
-  char *const hold_space = status->hold_space;
-  const size_t hold_space_len = strlen(hold_space);
+  char *const hold_space = status->hold_space.str;
+  const char *const pattern_space = status->pattern_space.str;
+  const size_t hold_space_len = status->hold_space.length;
+  const size_t pattern_space_len = status->pattern_space.length;
   memcpy(
     hold_space + hold_space_len + 1, // we'll place the \n in between
     pattern_space,
-    strlen(pattern_space) + 1 // include \0
+    pattern_space_len
   );
   hold_space[hold_space_len] = '\n';
+  status->hold_space.length += pattern_space_len + 1;
 }
 
 void i(const char *const output) {
@@ -265,7 +288,7 @@ void i(const char *const output) {
 }
 
 void l(const Status *const status) {
-  const char *const pattern_space = status->pattern_space;
+  const char *const pattern_space = status->pattern_space.str;
   for (size_t i = 0, fold_counter = 0; pattern_space[i]; ++i, ++fold_counter) {
     const char c = pattern_space[i];
     if (fold_counter > 80) {
@@ -320,40 +343,61 @@ void l(const Status *const status) {
 
 operation_ret n(Status *const status) {
   if (!status->suppress_default_output) {
-    puts(status->pattern_space);
+    p(status);
   }
-  if (!read_pattern(status, status->pattern_space, PATTERN_SIZE)) {
+  ssize_t nb_chars_read = read_pattern(
+    status,
+    status->pattern_space.str,
+    PATTERN_SIZE
+  );
+  if (nb_chars_read == -1) {
     return BREAK;
   }
+  status->pattern_space.length = nb_chars_read;
   return 0;
 }
 
 operation_ret N(Status *const status) {
-  char *const pattern_space = status->pattern_space;
-  const size_t pattern_space_len = strlen(pattern_space);
-  if (!read_pattern(
-        status,
-        pattern_space + pattern_space_len + 1,
-        PATTERN_SIZE - pattern_space_len - 1)
-  ) {
+  char *const pattern_space = status->pattern_space.str;
+  const size_t pattern_space_len = status->pattern_space.length;
+  ssize_t nb_chars_read = read_pattern(
+    status,
+    pattern_space + pattern_space_len + 1,
+    PATTERN_SIZE - pattern_space_len - 1
+  );
+  if (nb_chars_read == -1) {
     return BREAK;
   }
   pattern_space[pattern_space_len] = '\n';
+  status->pattern_space.length += nb_chars_read + 1;
   return 0;
 }
 
 void p(const Status *const status) {
-  const char *const pattern_space = status->pattern_space;
-  puts(pattern_space);
+  fwrite(
+    status->pattern_space.str,
+    sizeof(char),
+    status->pattern_space.length,
+    stdout
+  );
+  putchar('\n');
+  fflush(stdout);
 }
 
 void P(const Status *const status) {
-  const char *const pattern_space = status->pattern_space;
-  const char *const pattern_space_at_newline = strchr(pattern_space, '\n');
-  if (pattern_space_at_newline) {
-    const unsigned int first_line_length =
-      pattern_space_at_newline - pattern_space;
-    printf("%.*s\n", first_line_length, pattern_space);
+  const char *const pattern_space = status->pattern_space.str;
+  const char *const newline_location = get_nearest_newline_ptr(
+    pattern_space,
+    status->pattern_space.length
+  );
+  if (newline_location) {
+    const unsigned int first_line_length = newline_location - pattern_space;
+    fwrite(
+      status->pattern_space.str,
+      sizeof(char),
+      first_line_length + 1,
+      stdout
+    );
   } else {
     p(status);
   }
@@ -392,30 +436,39 @@ void s(
   const bool opt_g = opts & S_OPT_G;
   const bool opt_p = opts & S_OPT_P;
 
-  char *pattern_space = status->pattern_space;
+  char *pattern_space = status->pattern_space.str;
+  const size_t initial_pattern_space_len = status->pattern_space.length;
   size_t sub_nb = 0;
+  size_t total_offset = 0;
+  ssize_t total_nb_chars_removed = 0;
   do {
     const size_t initial_sub_nb = sub_nb;
+    ssize_t nb_chars_removed = 0;
     const size_t pattern_offset = substitution(
       regex_obj,
       pattern_space,
+      initial_pattern_space_len - total_nb_chars_removed - total_offset,
       replace,
       &sub_nb,
-      nth
+      nth,
+      &nb_chars_removed
     );
     if (initial_sub_nb == sub_nb) {
       break;
     }
+    total_offset += pattern_offset;
     pattern_space += pattern_offset;
+    total_nb_chars_removed += nb_chars_removed;
   } while (
     (opt_g || nth > sub_nb) &&
-    pattern_space[0]
+    initial_pattern_space_len - total_nb_chars_removed > total_offset
   );
 
   if (sub_nb >= nth) {
+    status->pattern_space.length -= total_nb_chars_removed;
     status->sub_success = true;
     if (opt_p) {
-      puts(status->pattern_space);
+      p(status);
     }
     w(status, f);
   }
@@ -423,8 +476,13 @@ void s(
 
 void w(const Status *const status, FILE *const f) {
   if (f) {
-    fputs(status->pattern_space, f);
-    fputc('\n', f); // unlike puts, fputs doesn't add a trailing newline
+    fwrite(
+      status->pattern_space.str,
+      sizeof(char),
+      status->pattern_space.length,
+      f
+    );
+    fputc('\n', f);
 
     // Potential following reads on the same file within the same sed script
     // should return the up-to-date content, this is used in tests to avoid
@@ -434,14 +492,14 @@ void w(const Status *const status, FILE *const f) {
 }
 
 void x(Status *const status) {
-  char *const pattern_space = status->pattern_space;
-  char *const hold_space = status->hold_space;
+  const String pattern_space = status->pattern_space;
+  const String hold_space = status->hold_space;
   status->pattern_space = hold_space;
   status->hold_space = pattern_space;
 }
 
 void y(Status *const status, const char *const set1, const char *const set2) {
-  char *const pattern_space = status->pattern_space;
+  char *const pattern_space = status->pattern_space.str;
   // Not the most efficient, might refactor this if I move to a C++ translation
   for (size_t pattern_index = 0; pattern_space[pattern_index]; ++pattern_index) {
     for (size_t set_index = 0; set1[set_index] && set2[set_index]; ++set_index) {

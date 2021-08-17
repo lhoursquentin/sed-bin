@@ -1,4 +1,4 @@
-#!/usr/bin/sed -f
+#!/bin/sed -f
 
 # The first line of the hold space is used for temporary storage in this script,
 # never use it to store data longer than a single command.
@@ -58,7 +58,7 @@ s|^#|//|; t comment
 /
   t label_cmds
 
-  s/./&{ if (!status.suppress_default_output) puts(status.pattern_space); continue; }\
+  s/./&{ if (!status.suppress_default_output) p(\&status); continue; }\
 /
   s/^t/&if (status.sub_success) /
   s/.//

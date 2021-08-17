@@ -164,7 +164,10 @@ bool addr_r(Status *const status, Regex *const regex) {
     regex->compiled = true;
   }
 
-  const char *const pattern_space = status->pattern_space;
+  char *const pattern_space = status->pattern_space.str;
+  // unfortunately regexec does not allow to pass a custom length, requiring a
+  // 0 char insertion
+  pattern_space[status->pattern_space.length] = '\0';
 
   return !regexec(regex_obj, pattern_space, 0, NULL, 0);
 }

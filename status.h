@@ -33,8 +33,13 @@ typedef struct {
 } Regex;
 
 typedef struct {
-  char *pattern_space;
-  char *hold_space;
+  size_t length;
+  char *str;
+} String;
+
+typedef struct {
+  String pattern_space;
+  String hold_space;
   bool sub_success;
   size_t line_nb;
   size_t last_line_nb;
@@ -44,7 +49,7 @@ typedef struct {
   size_t *const suppressed_range_ids;
   Pending_output *const pending_outputs;
   size_t pending_output_counter;
-  char *const next_line;
+  String next_line;
   bool last_line_addr_present;
   bool suppress_default_output;
 } Status;
