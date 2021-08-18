@@ -1,7 +1,7 @@
 #!/bin/sh
 set -u
 
-__usage() {
+__sed_usage() {
   cat << EOF
 An implementation of sed based on C translation.
 
@@ -28,7 +28,7 @@ while [ "$nb_args" -gt 0 ]; do
     -e)
       e_opt_found=true
       if "$f_opt_found"; then
-        __usage 1 >&2
+        __sed_usage 1 >&2
       fi
 
       shift; nb_args="$((nb_args - 1))"
@@ -42,7 +42,7 @@ $1"
 $(cat "$1")"
       ;;
     -h|--help)
-      __usage
+      __sed_usage
       ;;
     -n)
       n_opt_found=true
@@ -84,7 +84,7 @@ if "$e_opt_found" || "$f_opt_found"; then
   # delete extra leading newline, this is important for #n handling
   script="${script#?}"
 elif ! "$no_opt_script_found"; then
-  __usage 1 >&2
+  __sed_usage 1 >&2
 fi
 
   __sed_make "$script" && __sed_exec "$@"
