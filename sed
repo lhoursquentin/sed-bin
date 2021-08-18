@@ -75,7 +75,7 @@ if [ -z "${SED_DIR:-}" ]; then
   SED_DIR=${SED_DIR%/*}/
 fi
 
-bin="${BIN-$SED_DIR/sed-bin}"
+bin="${SED_BIN-$SED_DIR/sed-bin}"
 default_translator=$SED_DIR/par.sed
 translator="${SED_TRANSLATOR-$default_translator}"
 generated_file=$SED_DIR/generated.c
@@ -93,7 +93,11 @@ fi
 __sed_make() { __sed_default_make "$@"; }
 __sed_default_make() {  # args: script
 printf '%s\n' "$1" | (cd -- "$SED_DIR" && "$translator") > "$generated_file" &&
-  make -C "$SED_DIR" -s
+  # Makefile's BIN is a single-shell-word basename inside $SED_DIR, can't rely on it
+  BIN=sed-bin make -C "$SED_DIR" -s
+  if [ "$(realpath "$bin")" != "$(realpath "$SED_DIR/sed-bin")" ]; then
+    mv "$SED_DIR/sed-bin" "$bin"
+  fi
 }
 __sed_exec() { __sed_default_exec "$@"; }
 __sed_default_exec() {
